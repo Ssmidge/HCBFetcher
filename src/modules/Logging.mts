@@ -1,4 +1,3 @@
-import { organizationCache } from "../api/Caching.mts";
 import Module from "../types/Module.ts";
 
 export default class Logging extends Module {

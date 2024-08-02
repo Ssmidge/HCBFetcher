@@ -2,7 +2,6 @@ import { getConfiguration } from './api/YamlConfiguration.mts';
 import Logging from './modules/Logging.mts';
 import Module from './types/Module.ts';
 import Logging2 from './modules/Logging2.mts';
-import { organizationCache } from './api/Caching.mts';
 
 const config = await getConfiguration();
 
@@ -26,6 +25,3 @@ config.HCB.MonitoredOrganizations.forEach((slug: string) => {
         }
     });
 });
-
-console.log(`OrganizationCache - ${organizationCache.keys()}`);
-console.log("Done");

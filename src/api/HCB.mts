@@ -1,6 +1,9 @@
 import axios from 'axios';
+import nodeCache from 'node-cache';
 import { Organization, Transaction } from '../types/HCB.ts';
-import { organizationCache, transactionCache } from './Caching.mts';
+
+const organizationCache = new nodeCache({ stdTTL: 600, checkperiod: 120 });
+const transactionCache = new nodeCache({ stdTTL: 600, checkperiod: 120 });
 
 export async function getOrganization({ baseUrl, organization }: { baseUrl: string, organization: string }) : Promise<Organization> {
   if (!organizationCache.has(organization)) {
@@ -14,8 +17,9 @@ export async function getOrganization({ baseUrl, organization }: { baseUrl: stri
       url: `${baseUrl}/organizations/${organization}`
     });
   
+    console.log(`HCB - getOrganization - PreSet - ${organization} - ${organizationCache.keys()}`);
     organizationCache.set(organization, response.data);
-    console.log(organizationCache.keys())
+    console.log(`HCB - getOrganization - PostSet - ${organization} - ${organizationCache.keys()}`);
   } else {
     console.log(`Using cached organization ${organization}`);
   }
