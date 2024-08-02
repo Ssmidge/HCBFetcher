@@ -1,0 +1,7 @@
+HCB:
+  API:
+    BaseUrl: "https://hcb.hackclub.com/api/v3"
+  Organizations:
+    - "Arcade"
+    - "HQ"
+    - "WeLikeToCodeStuff"
