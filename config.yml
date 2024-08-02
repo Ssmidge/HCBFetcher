@@ -1,7 +1,7 @@
 HCB:
   API:
     BaseUrl: "https://hcb.hackclub.com/api/v3"
-  Organizations:
+  MonitoredOrganizations: # These organizations will show the differences when the script is ran again
     - "Arcade"
     - "HQ"
     - "WeLikeToCodeStuff"

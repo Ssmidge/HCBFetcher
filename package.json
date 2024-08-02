@@ -2,9 +2,9 @@
   "name": "hcbfetcher",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.ts",
+  "main": "src/index.mts",
   "scripts": {
-    "dev": "nodemon src/index.ts",
+    "dev": "nodemon --loader ts-node/esm src/index.mts",
     "lint": "eslint ./src/**/.ts"
   },
   "keywords": [
@@ -12,6 +12,7 @@
     "hackclub",
     "money"
   ],
+  "type": "module",
   "author": "Ssmidge",
   "license": "ISC",
   "devDependencies": {
