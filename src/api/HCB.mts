@@ -2,11 +2,12 @@ import axios from 'axios';
 import nodeCache from 'node-cache';
 import { Organization, Transaction } from '../types/HCB.ts';
 
-const organizationCache = new nodeCache({ stdTTL: 600, checkperiod: 120 });
-const transactionCache = new nodeCache({ stdTTL: 600, checkperiod: 120 });
+const organizationCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
+const transactionCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
 
 export async function getOrganization({ baseUrl, organization }: { baseUrl: string, organization: string }) : Promise<Organization> {
-  if (!organizationCache.has(organization)) {
+  // console.log(`HCB - getOrganization - PreSet - ${organization} - ${organizationCache.keys()}`);
+  if (!organizationCache.has(organization.toLowerCase())) {
     console.log(`Fetching organization ${organization} from API`);
     const response = await axios({
       method: "GET",
@@ -17,13 +18,12 @@ export async function getOrganization({ baseUrl, organization }: { baseUrl: stri
       url: `${baseUrl}/organizations/${organization}`
     });
   
-    console.log(`HCB - getOrganization - PreSet - ${organization} - ${organizationCache.keys()}`);
-    organizationCache.set(organization, response.data);
-    console.log(`HCB - getOrganization - PostSet - ${organization} - ${organizationCache.keys()}`);
+    organizationCache.set(organization.toLowerCase(), response.data);
+    // console.log(`HCB - getOrganization - PostSet - ${organization} - ${organizationCache.keys()}`);
   } else {
     console.log(`Using cached organization ${organization}`);
   }
-  return organizationCache.get(organization) as Organization;
+  return organizationCache.get(organization.toLowerCase()) as Organization;
 }
 
 export async function getAllOrganizationTransactions({ baseUrl, organization }: { baseUrl: string, organization: string }) : Promise<Transaction[]> {
