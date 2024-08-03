@@ -1,6 +1,9 @@
 import { getOrganization } from "../api/HCB.mts";
 import Module from "../types/Module.ts";
 import Bolt from "@slack/bolt";
+import { numberWithCommas } from "../utils/MoneyUtils.ts";
+
+let lastTransactionId : string = "";
 
 export default class SlackBot extends Module {
     app: Bolt.App;
@@ -15,37 +18,66 @@ export default class SlackBot extends Module {
         });
 
         this.app.start();
-        
-        this.app.message(async ({ message, say }) => {
-            console.log(message);
-            // await this.app.client.chat.postMessage({
-            //     channel: "C07EKVDS5B8",
-            //     token: process.env.SLACK_BOT_TOKEN,
-            //     text: "Hello, world!" 
-            // });
-        });
+    }
+    
+    async sendOutput(): Promise<any> {
+        this.setupSlack();
     }
 
-    async sendOutput(): Promise<any> {
+    async setupSlack() {
+        this.app.message("ssmidgetestabc123", async ({ message }) => {
+        });
+        
+        setInterval(async () => {
+            const lastTransaction = (await this.getOtherHCBOrganizationTransactions('arcade')).filter((t) => t.type == "card_charge")[0];   
+            if (lastTransactionId == lastTransaction.id) return;
+            await this.app.client.chat.postMessage({
+                channel: process.env.SLACK_CHANNEL as string,
+                token: process.env.SLACK_BOT_TOKEN,
+                mrkdwn: true,
+                parse: "none",
+                text: `
+                <https://hcb.hackclub.com/hcb/${lastTransaction.id.split("txn_")[1]}|*NEW TRANSACTION*>
+*Date*: ${lastTransaction.date}
+*Memo*: ${lastTransaction.memo}
+*Balance Change*: $${numberWithCommas(lastTransaction.amount_cents / 100)}
+*User*: ${lastTransaction.card_charge?.user.full_name}
+                `
+            });
+        }, 5 * 60 * 1000);
 
-        this.app.command("/hcb-test", async ({ command, ack, client }) => {
+        this.app.command("/hcb", async ({ command, ack, client }) => {
             try {
-                const orgName = command.text;
-                const organizationData = await this.getOtherHCBOrganization(orgName);
+                const subCommand = command.text.split(" ")[0];
+                switch (subCommand) {
+                    case "balance": {
+                       const orgName = command.text.split(" ")[1];
+                          const organizationData = await this.getOtherHCBOrganization(orgName);
+                       if (organizationData.message) {
+                        await client.chat.postEphemeral({
+                            channel: command.channel_id,
+                            user: command.user_id,
+                            text: `${organizationData.message}`
+                        });
+                        } else if (organizationData.balances) {
+                            await client.chat.postEphemeral({
+                                channel: command.channel_id,
+                                user: command.user_id,
+                                text: `${organizationData.name} has a balance of ${numberWithCommas(organizationData.balances.balance_cents / 100)} USD`
+                            });
+                        }
+                        break;
+                    }
+                    default: {
+                        await ack();
+                        await client.chat.postEphemeral({
+                            channel: command.channel_id,
+                            user: command.user_id,
+                            text: "Invalid subcommand"
+                        });
+                    }
+                };
                 await ack();
-                if (organizationData.message) {
-                    await client.chat.postEphemeral({
-                        channel: command.channel_id,
-                        user: command.user_id,
-                        text: `${organizationData.message}`
-                    });
-                } else if (organizationData.balances) {
-                    await client.chat.postEphemeral({
-                        channel: command.channel_id,
-                        user: command.user_id,
-                        text: `${organizationData.name} has a balance of ${organizationData.balances.balance_cents / 100} USD`
-                    });
-                }
             } catch (error) {
                 console.log("err")
                 console.error(error);

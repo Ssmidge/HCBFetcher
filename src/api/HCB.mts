@@ -13,10 +13,10 @@ export async function getOrganization({ baseUrl, organization }: { baseUrl: stri
       method: "GET",
       headers: {
           "Accept": "application/json",
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
       },
       url: `${baseUrl}/organizations/${organization}`,
-      validateStatus: (status) => true,
+      validateStatus: () => true,
     });
   
     organizationCache.set(organization.toLowerCase(), response.data);
@@ -33,10 +33,14 @@ export async function getAllOrganizationTransactions({ baseUrl, organization }: 
       method: "GET",
       headers: {
           "Accept": "application/json",
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+        },
+      params: {
+        "expand": "user,organization,ach_transfer,check,donation,invoice,transfer,card_charge",
+        "per_page": "15"
       },
       url: `${baseUrl}/organizations/${organization}/transactions`,
-      validateStatus: (status) => true,
+      validateStatus: () => true,
     });
   
     transactionCache.set(organization, response.data);
