@@ -28,7 +28,8 @@ export type Organization = {
       admin: true;
       photo: "string";
     }
-  ];
+  ],
+  message?: "string";
 };
 
 export type Transaction = {

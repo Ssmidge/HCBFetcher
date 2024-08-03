@@ -13,6 +13,12 @@ export default class Module implements IModule {
     protected async getHCBOrganizationTransactions(): Promise<Transaction[]> {
         return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization.toLowerCase() });
     }
+    protected async getOtherHCBOrganization(organization: string): Promise<Organization> {
+        return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: organization.toLowerCase() });
+    }
+    protected async getOtherHCBOrganizationTransactions(organization: string): Promise<Transaction[]> {
+        return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: organization.toLowerCase() });
+    }
     public async sendOutput(): Promise<any> {
         throw new Error("Method not implemented.");
     }

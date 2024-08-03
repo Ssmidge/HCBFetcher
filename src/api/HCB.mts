@@ -15,7 +15,8 @@ export async function getOrganization({ baseUrl, organization }: { baseUrl: stri
           "Accept": "application/json",
           "Content-Type": "application/json"
       },
-      url: `${baseUrl}/organizations/${organization}`
+      url: `${baseUrl}/organizations/${organization}`,
+      validateStatus: (status) => true,
     });
   
     organizationCache.set(organization.toLowerCase(), response.data);
@@ -34,7 +35,8 @@ export async function getAllOrganizationTransactions({ baseUrl, organization }: 
           "Accept": "application/json",
           "Content-Type": "application/json"
       },
-      url: `${baseUrl}/organizations/${organization}/transactions`
+      url: `${baseUrl}/organizations/${organization}/transactions`,
+      validateStatus: (status) => true,
     });
   
     transactionCache.set(organization, response.data);

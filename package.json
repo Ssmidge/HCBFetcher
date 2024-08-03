@@ -24,7 +24,10 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
+    "@slack/bolt": "^3.19.0",
+    "@slack/socket-mode": "^2.0.0",
     "axios": "^1.7.3",
+    "dotenv": "^16.4.5",
     "node-cache": "^5.1.2",
     "yaml": "^2.5.0"
   }
