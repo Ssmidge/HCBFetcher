@@ -22,6 +22,7 @@ type Transaction = {
     donation?: Donation;
     invoice?: Invoice;
     transfer?: Transfer;
+    message?: string;
   };
   
   type Organization = {

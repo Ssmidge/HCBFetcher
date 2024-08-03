@@ -51,8 +51,12 @@ export default class SlackBot extends Module {
                 const subCommand = command.text.split(" ")[0];
                 switch (subCommand) {
                     case "balance": {
-                       const orgName = command.text.split(" ")[1];
-                          const organizationData = await this.getOtherHCBOrganization(orgName);
+                        if (!command.text.split(" ")[1] || command.text.split(" ")[1]?.length < 1) {
+                            await client.chat.postEphemeral({ channel: command.channel_id, user: command.user_id, text: "Please provide an organization name." });
+                            break;
+                        }
+                        const orgName = command.text.split(" ")[1];
+                        const organizationData = await this.getOtherHCBOrganization(orgName);
                        if (organizationData.message) {
                         await client.chat.postEphemeral({
                             channel: command.channel_id,
@@ -66,6 +70,50 @@ export default class SlackBot extends Module {
                                 text: `${organizationData.name} has a balance of ${numberWithCommas(organizationData.balances.balance_cents / 100)} USD`
                             });
                         }
+                        break;
+                    }
+                    case "tx": {
+                        if (!command.text.split(" ")[1] || command.text.split(" ")[1]?.length < 1) {
+                            await client.chat.postEphemeral({ channel: command.channel_id, user: command.user_id, text: "Please provide a transaction id." });
+                            break;
+                        }
+                        const transactionID = command.text.split(" ")[1];
+                        const transactionData = await this.getHCBTransaction(transactionID.startsWith("txn_") ? transactionID : `txn_${transactionID}`);
+
+                        if (transactionData.message) {
+                            await client.chat.postEphemeral({
+                                channel: command.channel_id,
+                                user: command.user_id,
+                                text: `${transactionData.message}`
+                            });
+                        } else {
+                            const fields = [];
+                            if(transactionData.date) fields.push(`*Date*: ${transactionData.date}`);
+                            if(transactionData.memo) fields.push(`*Memo*: ${transactionData.memo}`);
+                            if(transactionData.amount_cents) fields.push(`*Balance Change*: ${numberWithCommas(transactionData.amount_cents / 100)} USD`);
+                            if(transactionData.organization) fields.push(`*Organization*: <https://hcb.hackclub.com/${transactionData.organization.slug}|${transactionData.organization.name}>`);
+                            if(transactionData.organization?.balances) fields.push(`*Organization Balance*: ${numberWithCommas(transactionData.organization.balances.balance_cents / 100)} USD`);
+                            if(transactionData.card_charge?.user || transactionData.ach_transfer?.user || transactionData.check?.user || transactionData.donation?.user || transactionData.invoice?.user || transactionData.transfer?.user) fields.push(`*User*: ${transactionData.card_charge?.user.full_name || transactionData.ach_transfer?.user.full_name || transactionData.check?.user.full_name || transactionData.donation?.user.full_name || transactionData.invoice?.user.full_name || transactionData.transfer?.user.full_name || "Unknown"}`);
+                            if(transactionData.card_charge?.card?.name) fields.push(`*Card*: ${transactionData.card_charge.card.name}`);
+                            if(transactionData.comments) fields.push(`*Comments*: ${transactionData.comments.count}`);
+
+                            await client.chat.postEphemeral({
+                                channel: command.channel_id,
+                                user: command.user_id,
+                                mrkdwn: true,
+                                parse: "none",
+                                // I wanted to try another way of adding each field because I felt like it
+                                text: fields.join("\n"),
+                            });
+                        }
+                        break;
+                    }
+                    case "help": {
+                        await client.chat.postEphemeral({
+                            channel: command.channel_id,
+                            user: command.user_id,
+                            text: "```/hcb balance <organization> - Get the balance of an organization\n/hcb tx <transaction id> - Get the details of a transaction\n/hcb help - Get help```"
+                        });
                         break;
                     }
                     default: {

@@ -3,6 +3,7 @@ import nodeCache from 'node-cache';
 import { Organization, Transaction } from '../types/HCB.ts';
 
 const organizationCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
+const organizationTransactionCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
 const transactionCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
 
 export async function getOrganization({ baseUrl, organization }: { baseUrl: string, organization: string }) : Promise<Organization> {
@@ -28,7 +29,7 @@ export async function getOrganization({ baseUrl, organization }: { baseUrl: stri
 }
 
 export async function getAllOrganizationTransactions({ baseUrl, organization }: { baseUrl: string, organization: string }) : Promise<Transaction[]> {
-  if (!transactionCache.has(organization)) {
+  if (!organizationTransactionCache.has(organization)) {
     const response = await axios({
       method: "GET",
       headers: {
@@ -43,11 +44,36 @@ export async function getAllOrganizationTransactions({ baseUrl, organization }: 
       validateStatus: () => true,
     });
   
-    transactionCache.set(organization, response.data);
+    organizationTransactionCache.set(organization, response.data);
     console.log(`Fetched ${response.data.length} transactions for organization ${organization} from API`);
   } else {
-    console.log(`Using ${(transactionCache.get(organization) as Transaction[]).length} cached transactions for organization ${organization}`);
+    console.log(`Using ${(organizationTransactionCache.get(organization) as Transaction[]).length} cached transactions for organization ${organization}`);
   }
 
-  return transactionCache.get(organization) || [];
+  return organizationTransactionCache.get(organization) || [];
+}
+
+export async function getTransaction({ baseUrl, transactionId }: { baseUrl: string, transactionId: string }) : Promise<Transaction> {
+  if (!transactionCache.has(transactionId)) {
+    const response = await axios({
+      method: "GET",
+      headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+      params: {
+        "expand": "user,organization,ach_transfer,check,donation,invoice,transfer,card_charge,card",
+        "per_page": "15"
+      },
+      url: `${baseUrl}/transactions/${transactionId}`,
+      validateStatus: () => true,
+    });
+  
+    transactionCache.set(transactionId, response.data);
+    console.log(`Fetched data about transaction ${transactionId} from API`);
+  } else {
+    console.log(`Using cached transaction data about transaction ${transactionId}`);
+  }
+
+  return transactionCache.get(transactionId) || {} as Transaction;
 }
