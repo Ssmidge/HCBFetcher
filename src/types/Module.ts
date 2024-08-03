@@ -1,6 +1,6 @@
-import { getAllOrganizationTransactions, getOrganization, getTransaction } from "../api/HCB.mts";
+import { getAllOrganizationTransactions, getCard, getOrganization, getTransaction } from "../api/HCB.mts";
 import { getConfiguration } from "../api/YamlConfiguration.mts";
-import { Organization, Transaction } from "./HCB.ts";
+import { Card, Organization, Transaction } from "./HCB.ts";
 
 const config = await getConfiguration();
 
@@ -21,6 +21,9 @@ export default class Module implements IModule {
     }
     protected async getHCBTransaction(transactionId: string): Promise<Transaction> {
         return await getTransaction({ baseUrl: config.HCB.API.BaseUrl, transactionId });
+    }
+    protected async getHCBCard(cardId: string): Promise<Card> {
+        return await getCard({ baseUrl: config.HCB.API.BaseUrl, cardId });
     }
     public async sendOutput(): Promise<any> {
         throw new Error("Method not implemented.");

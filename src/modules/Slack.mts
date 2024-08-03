@@ -108,11 +108,49 @@ export default class SlackBot extends Module {
                         }
                         break;
                     }
+                    case "card": {
+                        if (!command.text.split(" ")[1] || command.text.split(" ")[1]?.length < 1) {
+                            await client.chat.postEphemeral({ channel: command.channel_id, user: command.user_id, text: "Please provide a card id." });
+                            break;
+                        }
+                        const cardID = command.text.split(" ")[1];
+                        const cardData = await this.getHCBCard(cardID.startsWith("crd_") ? cardID : `crd_${cardID}`);
+                        if (cardData.message) {
+                            await client.chat.postEphemeral({
+                                channel: command.channel_id,
+                                user: command.user_id,
+                                text: `${cardData.message}`
+                            });
+                            break;
+                        }
+
+                        const fields = [];
+                        // feeling fancy so I'm making the type and status uppercase on the first letter
+                        if (cardData.name) fields.push(`*Name*: ${cardData.name}`);
+                        if (cardData.type) fields.push(`*Type*: ${cardData.type.charAt(0).toUpperCase() + cardData.type.slice(1)}`);
+                        if (cardData.status) fields.push(`*Status*: ${cardData.status.charAt(0).toUpperCase() + cardData.status.slice(1)}`);
+                        if (cardData.owner) fields.push(`*Owner*: ${cardData.owner.full_name}`);
+                        if (cardData.organization) fields.push(`*Organization*: <https://hcb.hackclub.com/${cardData.organization.slug}|${cardData.organization.name}>`);
+                        if (cardData.issued_at) {
+                            const date = new Date(cardData.issued_at);
+                            fields.push(`*Issued At*: ${date.toDateString()} ${date.toTimeString()}`);
+                        }
+                        if (cardData.organization.balances) fields.push(`*Organization Balance*: ${numberWithCommas(cardData.organization.balances.balance_cents / 100)} USD`);
+
+                        await client.chat.postEphemeral({
+                            channel: command.channel_id,
+                            user: command.user_id,
+                            mrkdwn: true,
+                            parse: "none",
+                            text: fields.join("\n"),
+                        });
+                        break;
+                    }
                     case "help": {
                         await client.chat.postEphemeral({
                             channel: command.channel_id,
                             user: command.user_id,
-                            text: "```/hcb balance <organization> - Get the balance of an organization\n/hcb tx <transaction id> - Get the details of a transaction\n/hcb help - Get help```"
+                            text: "```/hcb balance <organization> - Get the balance of an organization\n/hcb tx <transaction id> - Get the details of a transaction\n/hcb card <card id> - Get information about a specific card.\n/hcb help - Get help```"
                         });
                         break;
                     }

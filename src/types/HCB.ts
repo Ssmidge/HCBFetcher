@@ -88,6 +88,7 @@ type Transaction = {
     issued_at: string;
     owner: User;
     organization: Organization;
+    message?: string;
   };
   
   type ACHTransfer = {
@@ -156,4 +157,5 @@ type Transaction = {
 export {
     Transaction,
     Organization,
+    Card,
 }

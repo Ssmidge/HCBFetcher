@@ -1,10 +1,11 @@
 import axios from 'axios';
 import nodeCache from 'node-cache';
-import { Organization, Transaction } from '../types/HCB.ts';
+import { Card, Organization, Transaction } from '../types/HCB.ts';
 
 const organizationCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
 const organizationTransactionCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
 const transactionCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
+const cardCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
 
 export async function getOrganization({ baseUrl, organization }: { baseUrl: string, organization: string }) : Promise<Organization> {
   // console.log(`HCB - getOrganization - PreSet - ${organization} - ${organizationCache.keys()}`);
@@ -51,6 +52,31 @@ export async function getAllOrganizationTransactions({ baseUrl, organization }: 
   }
 
   return organizationTransactionCache.get(organization) || [];
+}
+
+export async function getCard({ baseUrl, cardId }: { baseUrl: string, cardId: string }) : Promise<Card> {
+  if (!cardCache.has(cardId)) {
+    const response = await axios({
+      method: "GET",
+      headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+      params: {
+        "expand": "owner,organization,card",
+        "per_page": "15"
+      },
+      url: `${baseUrl}/cards/${cardId}`,
+      validateStatus: () => true,
+    });
+  
+    cardCache.set(cardId, response.data);
+    console.log(`Fetched data about card ${cardId} from API`);
+  } else {
+    console.log(`Using cached card data about card ${cardId}`);
+  }
+
+  return cardCache.get(cardId) || {} as Card;
 }
 
 export async function getTransaction({ baseUrl, transactionId }: { baseUrl: string, transactionId: string }) : Promise<Transaction> {
