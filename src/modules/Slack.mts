@@ -1,12 +1,14 @@
 import { getOrganization } from "../api/HCB.mts";
 import Module from "../types/Module.ts";
-import Bolt from "@slack/bolt";
+import Bolt, { LogLevel as SlackLogLevel } from "@slack/bolt";
 import { numberWithCommas } from "../utils/MoneyUtils.ts";
+import { LogLevel } from "../api/Logger.mts";
 
 let lastTransactionId : string = "";
 
 export default class SlackBot extends Module {
     app: Bolt.App;
+    logLevel: LogLevel = LogLevel[process.env.LOG_LEVEL as keyof typeof LogLevel] as unknown as SlackLogLevel;
     constructor(organization: string) {
         super(organization);
         this.id = "slackbot";
@@ -14,7 +16,29 @@ export default class SlackBot extends Module {
             token: process.env.SLACK_BOT_TOKEN,
             signingSecret: process.env.SLACK_SIGNING_SECRET,
             socketMode: true, // add this
-            appToken: process.env.SLACK_APP_TOKEN // add this
+            appToken: process.env.SLACK_APP_TOKEN,
+            logLevel: this.logLevel,
+            logger: {
+                debug: (...msgs) => { 
+                    if (this.logLevel == LogLevel.DEBUG)
+                        console.log(`${this.getLoggingPrefix("DEBUG")} ${JSON.stringify(msgs)}`) 
+                },
+                info: (...msgs) => { 
+                    if ([LogLevel.INFO, LogLevel.DEBUG, LogLevel.WARN, LogLevel.ERROR].includes(this.logLevel))
+                        console.log(`${this.getLoggingPrefix("INFO")} ${JSON.stringify(msgs)}`) 
+                },
+                warn: (...msgs) => { 
+                    if ([LogLevel.DEBUG, LogLevel.WARN, LogLevel.ERROR].includes(this.logLevel))
+                        console.log(`${this.getLoggingPrefix("WARNING")} ${JSON.stringify(msgs)}`) 
+                },
+                error: (...msgs) => {
+                    if ([LogLevel.DEBUG, LogLevel.ERROR].includes(this.logLevel))
+                        console.log(`${this.getLoggingPrefix("SLACK")} ${JSON.stringify(msgs)}`) 
+                },
+                setLevel: (level) => { },
+                getLevel: () => { return this.logLevel; },
+                setName: (name) => { },
+            },
         });
 
         this.app.start();
@@ -44,6 +68,7 @@ export default class SlackBot extends Module {
 *User*: ${lastTransaction.card_charge?.user.full_name}
                 `
             });
+            lastTransactionId = lastTransaction.id;
         }, 5 * 60 * 1000);
 
         this.app.command("/hcb", async ({ command, ack, client }) => {

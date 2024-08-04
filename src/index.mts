@@ -4,10 +4,12 @@ import Module from './types/Module.ts';
 import SlackBot from './modules/Slack.mts';
 
 import "dotenv/config";
+import { getLoggingPrefix } from './api/Logger.mts';
 
 const config = await getConfiguration();
 
 const modules = [Logging, SlackBot];
+const moduleInstances: Module[] = [];
 
 // const org = await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: slug.toLowerCase() });
 // const balance = org.balances.balance_cents / 100;
@@ -19,12 +21,25 @@ for (const m of modules) {
     const module = m as typeof Module;
     config.HCB.MonitoredOrganizations.forEach(async (slug: string) => {
         if (module.name === "SlackBot" && config.HCB.MonitoredOrganizations[0] !== slug) return;
-        const instance = new module(slug);
         try {
-            await instance.sendOutput();
-        } catch(err) {
-            const error = err as Error;
-            console.error(`Error in module ${instance.id}: ${error.message}`);
+            const instance = new module(slug);
+            moduleInstances.push(instance);
+        } catch (e) {
+            console.error(`${getLoggingPrefix({ module: "SYSTEM", type: "ERROR", highlight: true })} Error initializing module ${module.name}: ${e}`);
         }
     });
 }
+console.log(`${getLoggingPrefix({ module: "SYSTEM", type: "INFO", highlight: true })} Done initializing modules`);
+console.log(`${getLoggingPrefix({ module: "SYSTEM", type: "INFO", highlight: true })} Monitoring ${config.HCB.MonitoredOrganizations.length} organizations`);
+
+const runModules = async () => {
+    for (const module of moduleInstances) {
+        try {
+            await module.sendOutput();
+        } catch (e) {
+            console.error(`${getLoggingPrefix({ module: "SYSTEM", type: "ERROR", highlight: true })} Error running module ${module.id}: ${e}`);
+        }
+    }
+}
+
+runModules();

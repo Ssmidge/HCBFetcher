@@ -8,9 +8,8 @@ const transactionCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClone
 const cardCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
 
 export async function getOrganization({ baseUrl, organization }: { baseUrl: string, organization: string }) : Promise<Organization> {
-  // console.log(`HCB - getOrganization - PreSet - ${organization} - ${organizationCache.keys()}`);
   if (!organizationCache.has(organization.toLowerCase())) {
-    console.log(`Fetching organization ${organization} from API`);
+    // console.log(`Fetching organization ${organization} from API`);
     const response = await axios({
       method: "GET",
       headers: {
@@ -22,9 +21,8 @@ export async function getOrganization({ baseUrl, organization }: { baseUrl: stri
     });
   
     organizationCache.set(organization.toLowerCase(), response.data);
-    // console.log(`HCB - getOrganization - PostSet - ${organization} - ${organizationCache.keys()}`);
   } else {
-    console.log(`Using cached organization ${organization}`);
+    // console.log(`Using cached organization ${organization}`);
   }
   return organizationCache.get(organization.toLowerCase()) as Organization;
 }
@@ -46,9 +44,9 @@ export async function getAllOrganizationTransactions({ baseUrl, organization }: 
     });
   
     organizationTransactionCache.set(organization, response.data);
-    console.log(`Fetched ${response.data.length} transactions for organization ${organization} from API`);
+    // console.log(`Fetched ${response.data.length} transactions for organization ${organization} from API`);
   } else {
-    console.log(`Using ${(organizationTransactionCache.get(organization) as Transaction[]).length} cached transactions for organization ${organization}`);
+    // console.log(`Using ${(organizationTransactionCache.get(organization) as Transaction[]).length} cached transactions for organization ${organization}`);
   }
 
   return organizationTransactionCache.get(organization) || [];
@@ -71,9 +69,9 @@ export async function getCard({ baseUrl, cardId }: { baseUrl: string, cardId: st
     });
   
     cardCache.set(cardId, response.data);
-    console.log(`Fetched data about card ${cardId} from API`);
+    // console.log(`Fetched data about card ${cardId} from API`);
   } else {
-    console.log(`Using cached card data about card ${cardId}`);
+    // console.log(`Using cached card data about card ${cardId}`);
   }
 
   return cardCache.get(cardId) || {} as Card;
@@ -96,9 +94,9 @@ export async function getTransaction({ baseUrl, transactionId }: { baseUrl: stri
     });
   
     transactionCache.set(transactionId, response.data);
-    console.log(`Fetched data about transaction ${transactionId} from API`);
+    // console.log(`Fetched data about transaction ${transactionId} from API`);
   } else {
-    console.log(`Using cached transaction data about transaction ${transactionId}`);
+    // console.log(`Using cached transaction data about transaction ${transactionId}`);
   }
 
   return transactionCache.get(transactionId) || {} as Transaction;
