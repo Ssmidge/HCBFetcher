@@ -49,49 +49,28 @@ export default class SlackBot extends Module {
     }
 
     async setupSlack() {
-        this.app.message("ssmidgetestabc123", async ({ message }) => {
-        });
-        
-        setInterval(async () => {
-            const lastTransaction = (await this.getOtherHCBOrganizationTransactions('arcade')).filter((t) => t.type == "card_charge")[0];   
-            if (lastTransactionId == lastTransaction.id) return;
-            await this.app.client.chat.postMessage({
-                channel: process.env.SLACK_CHANNEL as string,
-                token: process.env.SLACK_BOT_TOKEN,
-                mrkdwn: true,
-                parse: "none",
-                text: `
-                <https://hcb.hackclub.com/hcb/${lastTransaction.id.split("txn_")[1]}|*NEW TRANSACTION*>
-*Date*: ${lastTransaction.date}
-*Memo*: ${lastTransaction.memo}
-*Balance Change*: $${numberWithCommas(lastTransaction.amount_cents / 100)}
-*User*: ${lastTransaction.card_charge?.user.full_name}
-                `
-            });
-            lastTransactionId = lastTransaction.id;
-        }, 5 * 60 * 1000);
-
-        this.app.command("/hcb", async ({ command, ack, client }) => {
+        this.app.command("/hcb", async ({ command, ack, client, respond }) => {
+            await ack();
+            await respond({ replace_original: true, text: "Processing your command..." });
+            console.log(`${this.getLoggingPrefix("SLACK")} Processing command: ${command.text}`);
             try {
                 const subCommand = command.text.split(" ")[0];
                 switch (subCommand) {
                     case "balance": {
                         if (!command.text.split(" ")[1] || command.text.split(" ")[1]?.length < 1) {
-                            await client.chat.postEphemeral({ channel: command.channel_id, user: command.user_id, text: "Please provide an organization name." });
+                            await respond({ replace_original: true, text: "Please provide an organization name." });
                             break;
                         }
                         const orgName = command.text.split(" ")[1];
                         const organizationData = await this.getOtherHCBOrganization(orgName);
                        if (organizationData.message) {
-                        await client.chat.postEphemeral({
-                            channel: command.channel_id,
-                            user: command.user_id,
+                        await respond({
+                            replace_original: true,
                             text: `${organizationData.message}`
                         });
                         } else if (organizationData.balances) {
-                            await client.chat.postEphemeral({
-                                channel: command.channel_id,
-                                user: command.user_id,
+                            await respond({
+                                replace_original: true,
                                 text: `${organizationData.name} has a balance of ${numberWithCommas(organizationData.balances.balance_cents / 100)} USD`
                             });
                         }
@@ -99,16 +78,15 @@ export default class SlackBot extends Module {
                     }
                     case "tx": {
                         if (!command.text.split(" ")[1] || command.text.split(" ")[1]?.length < 1) {
-                            await client.chat.postEphemeral({ channel: command.channel_id, user: command.user_id, text: "Please provide a transaction id." });
+                            await respond({ replace_original: true, text: "Please provide a transaction id." });
                             break;
                         }
                         const transactionID = command.text.split(" ")[1];
                         const transactionData = await this.getHCBTransaction(transactionID.startsWith("txn_") ? transactionID : `txn_${transactionID}`);
 
                         if (transactionData.message) {
-                            await client.chat.postEphemeral({
-                                channel: command.channel_id,
-                                user: command.user_id,
+                            await respond({
+                                replace_original: true,
                                 text: `${transactionData.message}`
                             });
                         } else {
@@ -122,9 +100,8 @@ export default class SlackBot extends Module {
                             if(transactionData.card_charge?.card?.name) fields.push(`*Card*: ${transactionData.card_charge.card.name}`);
                             if(transactionData.comments) fields.push(`*Comments*: ${transactionData.comments.count}`);
 
-                            await client.chat.postEphemeral({
-                                channel: command.channel_id,
-                                user: command.user_id,
+                            await respond({
+                                replace_original: true,
                                 mrkdwn: true,
                                 parse: "none",
                                 // I wanted to try another way of adding each field because I felt like it
@@ -135,15 +112,14 @@ export default class SlackBot extends Module {
                     }
                     case "card": {
                         if (!command.text.split(" ")[1] || command.text.split(" ")[1]?.length < 1) {
-                            await client.chat.postEphemeral({ channel: command.channel_id, user: command.user_id, text: "Please provide a card id." });
+                            await respond({ replace_original: true, text: "Please provide a card id." });
                             break;
                         }
                         const cardID = command.text.split(" ")[1];
                         const cardData = await this.getHCBCard(cardID.startsWith("crd_") ? cardID : `crd_${cardID}`);
                         if (cardData.message) {
-                            await client.chat.postEphemeral({
-                                channel: command.channel_id,
-                                user: command.user_id,
+                            await respond({
+                                replace_original: true,
                                 text: `${cardData.message}`
                             });
                             break;
@@ -162,9 +138,8 @@ export default class SlackBot extends Module {
                         }
                         if (cardData.organization.balances) fields.push(`*Organization Balance*: ${numberWithCommas(cardData.organization.balances.balance_cents / 100)} USD`);
 
-                        await client.chat.postEphemeral({
-                            channel: command.channel_id,
-                            user: command.user_id,
+                        await respond({
+                            replace_original: true,
                             mrkdwn: true,
                             parse: "none",
                             text: fields.join("\n"),
@@ -172,26 +147,22 @@ export default class SlackBot extends Module {
                         break;
                     }
                     case "help": {
-                        await client.chat.postEphemeral({
-                            channel: command.channel_id,
-                            user: command.user_id,
+                        await respond({
+                            replace_original: true,
                             text: "```/hcb balance <organization> - Get the balance of an organization\n/hcb tx <transaction id> - Get the details of a transaction\n/hcb card <card id> - Get information about a specific card.\n/hcb help - Get help```"
                         });
                         break;
                     }
                     default: {
-                        await ack();
-                        await client.chat.postEphemeral({
-                            channel: command.channel_id,
-                            user: command.user_id,
+                        await respond({
+                            replace_original: true,
                             text: "Invalid subcommand"
                         });
                     }
                 };
-                await ack();
             } catch (error) {
-                console.log("err")
-                console.error(error);
+                console.log(`${this.getLoggingPrefix("SLACK")} ${error}`) ;
+                await respond({ replace_original: true,text: "An error occurred while processing your command." });
             }
         });
     }

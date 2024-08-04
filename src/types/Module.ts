@@ -9,6 +9,8 @@ const config = await getConfiguration();
 export default class Module implements IModule {
     id: string = Module.name;
     organization: string;
+    // TODO: Implement EventEmitter for the app
+    once: boolean = false;
     protected async getHCBOrganization(): Promise<Organization> {
         return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization.toLowerCase() });
     }
