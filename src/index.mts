@@ -9,7 +9,7 @@ import { getLoggingPrefix } from './api/Logger.mts';
 import "dotenv/config";
 const config = await getConfiguration();
 
-const modules = [Logging, SlackBot, SlackNotifier];
+const modules = [Logging, SlackBot];
 const moduleInstances: Module[] = [];
 
 for (const m of modules) {
