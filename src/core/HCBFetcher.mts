@@ -25,16 +25,21 @@ export default class HCBFetcher {
                 this.moduleList.push(new module({ organization: org, client: this }));
             });
         });
+
+        this.eventEmitter.emit("modulesInitialized", this, this.moduleList);
     }
 
     async runAllModules() {
         this.moduleList.forEach((module) => {
             module.sendOutput();
         });
+
+        this.eventEmitter.emit("modulesExecuted", this, this.moduleList);
     }
 
     setSlackBot(slackBot: Bolt.App) {
         this.slackBot = slackBot;
+        this.eventEmitter.emit("slackBotSet", this, this.slackBot);
     }
 
     /**

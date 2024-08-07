@@ -37,6 +37,6 @@ export default class SlackNotifier extends Module {
                 `
             });
             lastTransactionId = lastTransaction.id;
-        }, 5 * 60 * 1000);
+        }, 1 * 60 * 1000);
     }
 }
