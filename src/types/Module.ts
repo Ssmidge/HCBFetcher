@@ -3,14 +3,18 @@ import { getAllOrganizationTransactions, getCard, getOrganization, getTransactio
 import { getConfiguration } from "../api/YamlConfiguration.mts";
 import { Card, Organization, Transaction } from "./HCB.ts";
 import { getLoggingPrefix, LogType } from "../api/Logger.mts";
+import HCBFetcher from "../core/HCBFetcher.mts";
 
 const config = await getConfiguration();
 
 export default class Module implements IModule {
     id: string = Module.name;
     organization: string;
+    client: HCBFetcher;
+
     // TODO: Implement EventEmitter for the app
     once: boolean = false;
+
     protected async getHCBOrganization(): Promise<Organization> {
         return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization.toLowerCase() });
     }
@@ -36,8 +40,9 @@ export default class Module implements IModule {
         return getLoggingPrefix({ module: this.id, type });
     }
 
-    constructor(organization: string) {
+    constructor({ organization, client } : { organization: string, client: HCBFetcher }) {
         this.organization = organization;
+        this.client = client;
     }
     
 }

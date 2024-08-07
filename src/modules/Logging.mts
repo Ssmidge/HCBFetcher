@@ -1,9 +1,10 @@
+import HCBFetcher from "../core/HCBFetcher.mts";
 import Module from "../types/Module.ts";
 import { numberWithCommas } from "../utils/MoneyUtils.ts";
 
 export default class Logging extends Module {
-    constructor(organization: string) {
-        super(organization);
+    constructor({ organization, client }: { organization: string, client: HCBFetcher }) {
+        super({ organization, client });
         this.id = "Logging";
     }
 

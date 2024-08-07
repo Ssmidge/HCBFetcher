@@ -3,45 +3,15 @@ import Module from "../types/Module.ts";
 import Bolt, { LogLevel as SlackLogLevel } from "@slack/bolt";
 import { numberWithCommas } from "../utils/MoneyUtils.ts";
 import { LogLevel } from "../api/Logger.mts";
+import HCBFetcher from "../core/HCBFetcher.mts";
 
 let lastTransactionId : string = "";
 
 export default class SlackNotifier extends Module {
-    app: Bolt.App;
     logLevel: LogLevel = LogLevel[process.env.LOG_LEVEL as keyof typeof LogLevel] as unknown as SlackLogLevel;
-    constructor(organization: string) {
-        super(organization);
+    constructor({ organization, client }: { organization: string, client: HCBFetcher }) {
+        super({ organization, client });
         this.id = "slacknotif";
-        this.app = new Bolt.App({
-            token: process.env.SLACK_BOT_TOKEN,
-            signingSecret: process.env.SLACK_SIGNING_SECRET,
-            socketMode: true, // add this
-            appToken: process.env.SLACK_APP_TOKEN,
-            logLevel: this.logLevel,
-            logger: {
-                debug: (...msgs) => { 
-                    if (this.logLevel == LogLevel.DEBUG)
-                        console.log(`${this.getLoggingPrefix("DEBUG")} ${JSON.stringify(msgs)}`) 
-                },
-                info: (...msgs) => { 
-                    if ([LogLevel.INFO, LogLevel.DEBUG, LogLevel.WARN, LogLevel.ERROR].includes(this.logLevel))
-                        console.log(`${this.getLoggingPrefix("INFO")} ${JSON.stringify(msgs)}`) 
-                },
-                warn: (...msgs) => { 
-                    if ([LogLevel.DEBUG, LogLevel.WARN, LogLevel.ERROR].includes(this.logLevel))
-                        console.log(`${this.getLoggingPrefix("WARNING")} ${JSON.stringify(msgs)}`) 
-                },
-                error: (...msgs) => {
-                    if ([LogLevel.DEBUG, LogLevel.ERROR].includes(this.logLevel))
-                        console.log(`${this.getLoggingPrefix("SLACK")} ${JSON.stringify(msgs)}`) 
-                },
-                setLevel: (level) => { },
-                getLevel: () => { return this.logLevel; },
-                setName: (name) => { },
-            },
-        });
-
-        this.app.start();
     }
     
     async sendOutput(): Promise<any> {
@@ -49,10 +19,11 @@ export default class SlackNotifier extends Module {
     }
 
     async setupSlack() {
+        console.log(`${this.getLoggingPrefix("INFO")} SlackNotifier for ${this.organization} initialized`);
         setInterval(async () => {
-            const lastTransaction = (await this.getOtherHCBOrganizationTransactions('arcade')).filter((t) => t.type == "card_charge")[0];   
+            const lastTransaction = (await this.getHCBOrganizationTransactions()).filter((t) => t.type == "card_charge")[0];   
             if (lastTransactionId == lastTransaction.id) return;
-            await this.app.client.chat.postMessage({
+            await this.client.slackBot?.client.chat.postMessage({
                 channel: process.env.SLACK_CHANNEL as string,
                 token: process.env.SLACK_BOT_TOKEN,
                 mrkdwn: true,
