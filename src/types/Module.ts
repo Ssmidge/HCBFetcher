@@ -11,15 +11,20 @@ export default class Module implements IModule {
     id: string = Module.name;
     organization: string;
     client: HCBFetcher;
+    multiHandler: boolean = false; // One handler per instance of per organization (Good for Slack stuff because of the ratelimits)
 
     // TODO: Implement EventEmitter for the app
     once: boolean = false;
 
     protected async getHCBOrganization(): Promise<Organization> {
-        return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization.toLowerCase() });
+        if (this.multiHandler) throw new Error("This module is not designed to be used with multiple handlers");
+        else
+            return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization.toLowerCase() });
     }
     protected async getHCBOrganizationTransactions(): Promise<Transaction[]> {
-        return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization.toLowerCase() });
+        if (this.multiHandler) throw new Error("This module is not designed to be used with multiple handlers");
+        else
+            return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization.toLowerCase() });
     }
     protected async getOtherHCBOrganization(organization: string): Promise<Organization> {
         return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: organization.toLowerCase() });
@@ -33,16 +38,17 @@ export default class Module implements IModule {
     protected async getHCBCard(cardId: string): Promise<Card> {
         return await getCard({ baseUrl: config.HCB.API.BaseUrl, cardId });
     }
-    public async sendOutput(): Promise<any> {
+    public async sendOutput({ organizations }: { organizations?: string[] | undefined | null }): Promise<any> {
         throw new Error("Method not implemented.");
     }
     protected getLoggingPrefix(type : LogType) : string {
         return getLoggingPrefix({ module: this.id, type });
     }
 
-    constructor({ organization, client } : { organization: string, client: HCBFetcher }) {
+    constructor({ organization, client, isMultiHandler } : { organization: string, client: HCBFetcher, isMultiHandler?: boolean }) {
         this.organization = organization;
         this.client = client;
+        if (isMultiHandler) this.multiHandler = true;
     }
     
 }
@@ -50,5 +56,5 @@ export default class Module implements IModule {
 interface IModule {
     id: string;
     organization: string;
-    sendOutput(): Promise<any>;
+    sendOutput({ organizations }: { organizations: string[] | undefined | null }): Promise<any>;
 }

@@ -10,19 +10,26 @@ export default class HCBFetcher {
     slackCommands: string[] = [];
     organizations: string[];
     moduleList: Module[] = [];
+    yamlConfig: any;
     private eventEmitter;
 
-    constructor(organizations: string[]) {
+    constructor(organizations: string[], yamlConfig: any) {
         this.organizations = organizations;
         this.eventEmitter = new EventEmitter();
+        this.yamlConfig = yamlConfig;
     }
 
     async initializeModules() {
         this.organizations.forEach((org) => {
-            [Logging, SlackBot, SlackNotifier].forEach((m : any) => {
+            const moduleList = [Logging, SlackBot, SlackNotifier];
+            moduleList.forEach((m : any) => {
                 const module = m as typeof Module;
+                // quick check to not instantiate multiple times the same module
+                if (module.prototype.multiHandler && this.organizations.indexOf(org) == 0)
+                    this.moduleList.push(new module({ organization: org, client: this, isMultiHandler: true }));
+                else
+                    this.moduleList.push(new module({ organization: org, client: this }));
                 // this.moduleList.splice(this.moduleList.indexOf(m), 1);
-                this.moduleList.push(new module({ organization: org, client: this }));
             });
         });
 
@@ -31,7 +38,10 @@ export default class HCBFetcher {
 
     async runAllModules() {
         this.moduleList.forEach((module) => {
-            module.sendOutput();
+            if (module.multiHandler)
+                module.sendOutput({ organizations: this.organizations });
+            else
+                module.sendOutput({});
         });
 
         this.eventEmitter.emit("modulesExecuted", this, this.moduleList);

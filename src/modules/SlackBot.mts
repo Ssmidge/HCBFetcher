@@ -7,16 +7,17 @@ import HCBFetcher from "../core/HCBFetcher.mts";
 
 
 export default class SlackBot extends Module {
-    logLevel: LogLevel = LogLevel[process.env.LOG_LEVEL as keyof typeof LogLevel] as unknown as SlackLogLevel;
+    logLevel: LogLevel = SlackLogLevel.DEBUG;
     constructor({ organization, client }: { organization: string, client: HCBFetcher }) {
         super({ organization, client });
         this.id = "slackbot";
+        this.logLevel = client.yamlConfig.Logging.Level as unknown as LogLevel as SlackLogLevel;
         if (!this.client.slackBot) {
             this.client.setSlackBot(new Bolt.App({
-                token: process.env.SLACK_BOT_TOKEN,
-                signingSecret: process.env.SLACK_SIGNING_SECRET,
+                token: this.client.yamlConfig.Slack.Tokens.Bot,
+                signingSecret: this.client.yamlConfig.Slack.Secrets.Signing,
                 socketMode: true, // add this
-                appToken: process.env.SLACK_APP_TOKEN,
+                appToken: this.client.yamlConfig.Slack.Tokens.App,
                 logLevel: this.logLevel,
                 logger: {
                     debug: (...msgs) => { 
@@ -41,7 +42,11 @@ export default class SlackBot extends Module {
                 },
             }));
     
-            (this.client.slackBot as unknown as Bolt.App).start();
+            try {
+                (this.client.slackBot as unknown as Bolt.App).start();
+            } catch (error) {
+                console.log(`${this.getLoggingPrefix("ERROR")} ${error}`);
+            }
         }
     }
     

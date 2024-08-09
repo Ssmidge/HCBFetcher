@@ -1,42 +1,56 @@
-import { getOrganization } from "../api/HCB.mts";
 import Module from "../types/Module.ts";
-import Bolt, { LogLevel as SlackLogLevel } from "@slack/bolt";
 import { numberWithCommas } from "../utils/MoneyUtils.ts";
-import { LogLevel } from "../api/Logger.mts";
 import HCBFetcher from "../core/HCBFetcher.mts";
-
-let lastTransactionId : string = "";
+import { Transaction } from "../types/HCB.ts";
 
 export default class SlackNotifier extends Module {
-    logLevel: LogLevel = LogLevel[process.env.LOG_LEVEL as keyof typeof LogLevel] as unknown as SlackLogLevel;
     constructor({ organization, client }: { organization: string, client: HCBFetcher }) {
         super({ organization, client });
         this.id = "slacknotif";
+        this.multiHandler = true;
+        
+        console.log(`${this.getLoggingPrefix("INFO")} SlackNotifier for ${this.organization} initialized`);
     }
     
-    async sendOutput(): Promise<any> {
-        this.setupSlack();
+    async sendOutput({ organizations }: { organizations?: string[] | undefined | null }): Promise<any> {
+        if (!organizations) throw new Error("No organizations provided");
+        this.setupSlack(organizations);
     }
 
-    async setupSlack() {
+    async setupSlack(orgNames: string[]) {
         console.log(`${this.getLoggingPrefix("INFO")} SlackNotifier for ${this.organization} initialized`);
-        setInterval(async () => {
-            const lastTransaction = (await this.getHCBOrganizationTransactions()).filter((t) => t.type == "card_charge")[0];   
-            if (lastTransactionId == lastTransaction.id) return;
-            await this.client.slackBot?.client.chat.postMessage({
-                channel: process.env.SLACK_CHANNEL as string,
-                token: process.env.SLACK_BOT_TOKEN,
-                mrkdwn: true,
-                parse: "none",
-                text: `
-                <https://hcb.hackclub.com/hcb/${lastTransaction.id.split("txn_")[1]}|*NEW TRANSACTION*>
-*Date*: ${lastTransaction.date}
-*Memo*: ${lastTransaction.memo}
-*Balance Change*: $${numberWithCommas(lastTransaction.amount_cents / 100)}
-*User*: ${lastTransaction.card_charge?.user.full_name}
-                `
-            });
-            lastTransactionId = lastTransaction.id;
-        }, 1 * 60 * 1000);
+        let lastTransactionId = "EMPTY";
+        const messageQueue: string[][] = [];
+        const execute = async () => {
+            orgNames.forEach((async (org) => {
+                const lastTransaction = (await this.getOtherHCBOrganizationTransactions(org)).filter((t: Transaction) => (!t.memo.toLowerCase().includes("fiscal sponsorship for") || !t.memo) && t.amount_cents != 0.00)[0];
+                if (!lastTransaction) return;
+                if (lastTransactionId == lastTransaction.id) return;
+                const text = [];
+                if (lastTransaction.id) text.push(`<https://hcb.hackclub.com/hcb/${lastTransaction.id.split("txn_")[1]}|*NEW TRANSACTION*>`);
+                if (lastTransaction.organization?.name) text.push(`*Organization*: ${lastTransaction.organization.name}`);
+                if (lastTransaction.date) text.push(`*Date*: ${lastTransaction.date}`);
+                if (lastTransaction.memo) text.push(`*Memo*: ${lastTransaction.memo}`);
+                if (lastTransaction.amount_cents) text.push(`*Balance Change*: ${lastTransaction.amount_cents < 0 ? "-" : "+"}$${numberWithCommas(Math.abs(lastTransaction.amount_cents / 100))}`);
+                if (lastTransaction.card_charge?.user.full_name) text.push(`*User*: ${lastTransaction.card_charge?.user.full_name}`);
+                messageQueue.push(text);
+                lastTransactionId = lastTransaction.id;
+            }));
+            
+            if (messageQueue.length >= this.client.organizations.length) {
+
+                await this.client.slackBot?.client.chat.postMessage({
+                    channel: this.client.yamlConfig.Slack.Channels.TransactionTracker as string,
+                    mrkdwn: true,
+                    parse: "none",
+                    text: messageQueue.map((m) => m.join("\n")).join("\n\n"),
+                });
+                
+                // Reset the message queue
+                messageQueue.splice(0, messageQueue.length);
+            }
+        };
+        await execute();
+        setInterval(execute, 5 * 60 * 1000);
     }
 }

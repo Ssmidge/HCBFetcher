@@ -1,6 +1,7 @@
 HCB:
   API:
     BaseUrl: "https://hcb.hackclub.com/api/v3"
+    UserAgent: "HCB Transaction Fetcher (https://github.com/Ssmidge/HCBFetcher; https://ssmidge.xyz (@Adrian T on Slack))"
   MonitoredOrganizations: # These organizations will show the differences when the script is ran again
     - "Arcade"
     - "HQ"
