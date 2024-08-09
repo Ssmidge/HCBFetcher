@@ -132,4 +132,6 @@ dist
 .DS_Store
 
 # Yaml configuration
+*.yml
 config.yml
+config.yaml
