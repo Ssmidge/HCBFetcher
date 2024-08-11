@@ -135,3 +135,6 @@ dist
 *.yml
 config.yml
 config.yaml
+
+.wrangler
+.dev.vars

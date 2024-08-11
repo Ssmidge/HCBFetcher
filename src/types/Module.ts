@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { getAllOrganizationTransactions, getCard, getOrganization, getTransaction } from "../api/HCB.mts";
-import { getConfiguration } from "../api/YamlConfiguration.mts";
+import { getConfiguration } from "../api/ConfigurationLoader.mts";
 import { Card, Organization, Transaction } from "./HCB.ts";
 import { getLoggingPrefix, LogType } from "../api/Logger.mts";
 import HCBFetcher from "../core/HCBFetcher.mts";

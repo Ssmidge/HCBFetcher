@@ -1,0 +1,7 @@
+name = "hcbfetcher"
+main = "./src/index.mts"
+compatibility_date = "2023-12-01"
+node_compat = true
+
+[triggers]
+crons = ["* * * * * *"]
