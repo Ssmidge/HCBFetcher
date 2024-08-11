@@ -15,7 +15,7 @@ export type ConfigType = {
             Signing: string;
         },
         Channels: {
-            TransactionFetcher: string;
+            TransactionTracker: string;
         }
     },
     Logging: {
@@ -26,8 +26,8 @@ export type ConfigType = {
 export class Config implements ConfigType {
     HCB = {
         API: {
-            BaseUrl: "a",
-            UserAgent: "a",
+            BaseUrl: "",
+            UserAgent: "",
         },
         MonitoredOrganizations: [],
     };
@@ -41,7 +41,7 @@ export class Config implements ConfigType {
             Signing: ""
         },
         Channels: {
-            TransactionFetcher: "",
+            TransactionTracker: "",
         },
     };
 

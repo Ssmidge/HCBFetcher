@@ -37,11 +37,17 @@ export default class HCBFetcher {
     }
 
     async runAllModules() {
+        // keep only one organization for multiHandler modules
+        const filteredModules = this.moduleList.filter((module) => module.multiHandler)
+        // we keep one org per module, so no like 4 slacknotifiers with each one having a different org
+        .filter((module, index, self) => self.findIndex((m) => m.constructor.name === module.constructor.name) === index);
         this.moduleList.forEach((module) => {
-            if (module.multiHandler)
-                module.sendOutput({ organizations: this.organizations });
-            else
+            if (!module.multiHandler)
                 module.sendOutput({});
+        });
+        filteredModules.forEach((module) => {
+            module.organization = "all";
+            module.sendOutput({ organizations: this.organizations });
         });
 
         this.eventEmitter.emit("modulesExecuted", this, this.moduleList);

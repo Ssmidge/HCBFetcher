@@ -3,28 +3,30 @@ import { getLoggingPrefix } from './api/Logger.mts';
 import HCBFetcher from './core/HCBFetcher.mts';
 import "dotenv/config";
 import { AutoRouter, ResponseHandler } from 'itty-router';
+import { Config } from './types/Configuration.ts';
+import axios from 'axios';
 
-const config = getConfiguration();
+let config : Config = getConfiguration() as Config;
 const hcbClients = [];
 
 // Global Initialization \\
 // Axios \\
-// axios.defaults.headers.post['User-Agent'] = config.HCB.API.UserAgent;
+axios.defaults.headers.post['User-Agent'] = config?.HCB.API.UserAgent;
 
 // End Global Initialization \\
 
 // HCB Fetcher Instances \\
 
-// const client = new HCBFetcher(config.HCB.MonitoredOrganizations, config);
-// await client.initializeModules();
-// await client.runAllModules();
-// hcbClients.push(client);
+const client = new HCBFetcher(config.HCB.MonitoredOrganizations, config);
+await client.initializeModules();
+await client.runAllModules();
+hcbClients.push(client);
 
 // End HCB Fetcher Instances \\
 
 // Post-Initialization \\
-// console.log(`${getLoggingPrefix({ module: "SYSTEM", type: "INFO", highlight: true })} Done initializing modules`);
-// console.log(`${getLoggingPrefix({ module: "SYSTEM", type: "INFO", highlight: true })} Monitoring ${config.HCB.MonitoredOrganizations.length} organizations`);
+console.log(`${getLoggingPrefix({ module: "SYSTEM", type: "INFO", highlight: true })} Done initializing modules`);
+console.log(`${getLoggingPrefix({ module: "SYSTEM", type: "INFO", highlight: true })} Monitoring ${config.HCB.MonitoredOrganizations.length} organizations`);
 
 // End Post-Initialization \\
 
@@ -35,21 +37,54 @@ const hcbClients = [];
 
 // End Universal todos and notes \\
 
-const logger: ResponseHandler = (response: Response, request: Request) => { 
-    console.log(`[${new Date().toISOString()}] ${request.method} /${request.url.split(`/`)[3]} ${response.status} ${response.statusText}`);
-}
-const router = AutoRouter({
-    finally: [logger],
-});
+// Wrangler stuff \\
+// const logger: ResponseHandler = (response: Response, request: Request) => { 
+//     console.log(`[${new Date().toISOString()}] ${request.method} /${request.url.split(`/`)[3]} ${response.status} ${response.statusText}`);
+// }
+// const router = AutoRouter({
+//     finally: [logger],
+// });
 
-router.get('/', (request: Request, env: any) => {
-    // add env to process.env
-    getConfiguration(env);
-	return new Response('Hello, world! This is the root page of your Worker template.');
-});
+// router.get('/', (request: Request, env: any) => {
+//     if (!config) config = getConfiguration(env);
+// 	return Response.json({
+//         status: "OK",
+//         endpoints: [
+//             ...router.routes.map((route) => {
+//                 return {
+//                     method: route[0],
+//                     url: route[3] || '/',
+//                 }
+//             }, [])
+//         ]
+//     }, {
+//         status: 200,
+//         headers: {
+//             'X-Server': `${config?.HCB?.API.UserAgent || 'HCB Transaction Fetcher (https://github.com/Ssmidge/HCBFetcher)'}`,
+//         }
+//     })
+// });
 
-router.all('*', () => new Response('404, not found!', { status: 404 }));
+// router.get('/health', (request: Request, env: any) => {
+//     if (!config) config = getConfiguration(env);
+//     return Response.json({
+//         status: "OK",
+//         url: request.url,
+//     }, {
+//         status: 200,
+//         headers: {
+//             'X-Server': `${config?.HCB?.API.UserAgent || 'HCB Transaction Fetcher (https://github.com/Ssmidge/HCBFetcher)'}`,
+//         }
+//     })
+// });
 
-export default {
-    ...router,
-} satisfies ExportedHandler;
+// router.get('/repo', (request: Request, env: any) => {
+//     if (!config) config = getConfiguration(env);
+//     return Response.redirect('https://github.com/Ssmidge/HCBFetcher', 301);
+// });
+
+// router.all('*', () => new Response('404, not found!', { status: 404 }));
+
+// export default {
+//     ...router,
+// } satisfies ExportedHandler;

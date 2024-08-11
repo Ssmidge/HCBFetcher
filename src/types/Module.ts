@@ -48,7 +48,10 @@ export default class Module implements IModule {
     constructor({ organization, client, isMultiHandler } : { organization: string, client: HCBFetcher, isMultiHandler?: boolean }) {
         this.organization = organization;
         this.client = client;
-        if (isMultiHandler) this.multiHandler = true;
+        if (isMultiHandler) {
+            this.multiHandler = true;
+            this.organization = "all";
+        }
     }
     
 }

@@ -11,6 +11,7 @@ export default class SlackBot extends Module {
     constructor({ organization, client }: { organization: string, client: HCBFetcher }) {
         super({ organization, client });
         this.id = "slackbot";
+        this.multiHandler = true;
         this.logLevel = client.yamlConfig.Logging.Level as unknown as LogLevel as SlackLogLevel;
         if (!this.client.slackBot) {
             this.client.setSlackBot(new Bolt.App({
@@ -51,6 +52,7 @@ export default class SlackBot extends Module {
     }
     
     async sendOutput(): Promise<any> {
+        console.log(`${this.getLoggingPrefix("INFO")} SlackBot for ${this.client.organizations.length} organizations initialized`);
         this.setupSlack();
     }
 
