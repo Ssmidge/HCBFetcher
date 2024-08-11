@@ -5,7 +5,7 @@ import { Card, Organization, Transaction } from "./HCB.ts";
 import { getLoggingPrefix, LogType } from "../api/Logger.mts";
 import HCBFetcher from "../core/HCBFetcher.mts";
 
-const config = await getConfiguration();
+const config = getConfiguration();
 
 export default class Module implements IModule {
     id: string = Module.name;

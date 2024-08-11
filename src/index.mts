@@ -4,7 +4,7 @@ import HCBFetcher from './core/HCBFetcher.mts';
 import "dotenv/config";
 import axios from 'axios';
 
-const config = await getConfiguration();
+const config = getConfiguration();
 const hcbClients = [];
 
 // Global Initialization \\
