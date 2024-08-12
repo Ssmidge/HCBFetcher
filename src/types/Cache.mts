@@ -3,7 +3,7 @@ import HCBFetcher from "../core/HCBFetcher.mts";
 
 export enum CacheName {
     Organization = "organization",
-    OrganizationTransaction = "orgtransaction",
+    OrganizationTransactions = "orgtransactions",
     Card = "card",
     Transaction = "transaction",
 }

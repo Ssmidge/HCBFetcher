@@ -30,7 +30,7 @@ export async function getOrganization({ baseUrl, organization, cache }: { baseUr
 }
 
 export async function getAllOrganizationTransactions({ baseUrl, organization, cache }: { baseUrl: string, organization: string, cache: Cache }) : Promise<Transaction[]> {
-  if (!await cache.has(CacheName.OrganizationTransaction, organization.toLowerCase())) {
+  if (!await cache.has(CacheName.OrganizationTransactions, organization.toLowerCase())) {
     const response = await axios({
       method: "GET",
       headers: {
@@ -45,13 +45,13 @@ export async function getAllOrganizationTransactions({ baseUrl, organization, ca
       validateStatus: () => true,
     });
   
-    cache.set(CacheName.OrganizationTransaction, organization.toLowerCase(), JSON.stringify(response.data));
+    cache.set(CacheName.OrganizationTransactions, organization.toLowerCase(), JSON.stringify(response.data));
     // console.log(`Fetched ${response.data.length} transactions for organization ${organization} from API`);
   } else {
     // console.log(`Using ${(organizationTransactionCache.get(organization) as Transaction[]).length} cached transactions for organization ${organization}`);
   }
 
-  return JSON.parse(await cache.get(CacheName.OrganizationTransaction, organization.toLowerCase())) as Transaction[];
+  return JSON.parse(await cache.get(CacheName.OrganizationTransactions, organization.toLowerCase())) as Transaction[];
 }
 
 export async function getCard({ baseUrl, cardId, cache }: { baseUrl: string, cardId: string, cache: Cache }) : Promise<Card> {

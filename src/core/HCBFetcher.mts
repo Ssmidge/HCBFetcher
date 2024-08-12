@@ -46,12 +46,15 @@ export default class HCBFetcher {
         // we keep one org per module, so no like 4 slacknotifiers with each one having a different org
         .filter((module, index, self) => self.findIndex((m) => m.constructor.name === module.constructor.name) === index);
         this.moduleList.forEach((module) => {
-            if (!module.multiHandler)
+            if (!module.multiHandler) {
                 module.sendOutput({});
+                this.eventEmitter.emit("moduleExecuted", this, module);
+            }
         });
         filteredModules.forEach((module) => {
             module.organization = "all";
             module.sendOutput({ organizations: this.organizations });
+            this.eventEmitter.emit("moduleExecuted", this, module);
         });
 
         this.eventEmitter.emit("modulesExecuted", this, this.moduleList);
@@ -67,31 +70,33 @@ export default class HCBFetcher {
      * @date today (7/8/2024, DD/MM/YYYY)
      */
 
-    on(event: string, listener: (...args: any[]) => void) {
+    on(event: HCBEvent, listener: (...args: any[]) => void) {
         this.eventEmitter.on(event, listener);
     }
 
-    emit(event: string, ...args: any[]) {
+    emit(event: HCBEvent, ...args: any[]) {
         this.eventEmitter.emit(event, ...args);
     }
 
-    once(event: string, listener: (...args: any[]) => void) {
+    once(event: HCBEvent, listener: (...args: any[]) => void) {
         this.eventEmitter.once(event, listener);
     }
 
-    off(event: string, listener: (...args: any[]) => void) {
+    off(event: HCBEvent, listener: (...args: any[]) => void) {
         this.eventEmitter.off(event, listener);
     }
 
-    removeAllListeners(event: string) {
+    removeAllListeners(event: HCBEvent) {
         this.eventEmitter.removeAllListeners(event);
     }
 
-    listeners(event: string) {
+    listeners(event: HCBEvent) {
         return this.eventEmitter.listeners(event);
     }
 
-    listenerCount(event: string) {
+    listenerCount(event: HCBEvent) {
         return this.eventEmitter.listenerCount(event);
     }
 }
+
+type HCBEvent = "modulesInitialized" | "moduleExecuted" | "modulesExecuted" | "slackBotSet" | "cacheReady" | "cacheDisconnect" | "cacheError" | "loggingExecuted" | "slackNotifierExecuted";

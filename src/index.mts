@@ -35,7 +35,6 @@ console.log(`${getLoggingPrefix({ module: "SYSTEM", type: "INFO", highlight: tru
 
 // Univeral todos and notes \\
 // TODO: Implement EventEmitter for the app - Working on this
-// TODO: Implement Redis for better caching - Researching
 // TODO: Implement some sort of KV store to prevent duplicate messages on restart - Not started (Probably will use Redis or store a very small structure in something like PG or MySQL)
 
 // End Universal todos and notes \\
