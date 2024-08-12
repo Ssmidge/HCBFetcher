@@ -19,24 +19,24 @@ export default class Module implements IModule {
     protected async getHCBOrganization(): Promise<Organization> {
         if (this.multiHandler) throw new Error("This module is not designed to be used with multiple handlers");
         else
-            return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization.toLowerCase() });
+            return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization.toLowerCase(), cache: this.client.cache });
     }
     protected async getHCBOrganizationTransactions(): Promise<Transaction[]> {
         if (this.multiHandler) throw new Error("This module is not designed to be used with multiple handlers");
         else
-            return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization.toLowerCase() });
+            return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization.toLowerCase(), cache: this.client.cache });
     }
     protected async getOtherHCBOrganization(organization: string): Promise<Organization> {
-        return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: organization.toLowerCase() });
+        return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: organization.toLowerCase(), cache: this.client.cache });
     }
     protected async getOtherHCBOrganizationTransactions(organization: string): Promise<Transaction[]> {
-        return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: organization.toLowerCase() });
+        return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: organization.toLowerCase(), cache: this.client.cache });
     }
     protected async getHCBTransaction(transactionId: string): Promise<Transaction> {
-        return await getTransaction({ baseUrl: config.HCB.API.BaseUrl, transactionId });
+        return await getTransaction({ baseUrl: config.HCB.API.BaseUrl, transactionId, cache: this.client.cache });
     }
     protected async getHCBCard(cardId: string): Promise<Card> {
-        return await getCard({ baseUrl: config.HCB.API.BaseUrl, cardId });
+        return await getCard({ baseUrl: config.HCB.API.BaseUrl, cardId, cache: this.client.cache });
     }
     public async sendOutput({ organizations }: { organizations?: string[] | undefined | null }): Promise<any> {
         throw new Error("Method not implemented.");

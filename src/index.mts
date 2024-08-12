@@ -5,6 +5,7 @@ import "dotenv/config";
 import { AutoRouter, ResponseHandler } from 'itty-router';
 import { Config } from './types/Configuration.ts';
 import axios from 'axios';
+import { RedisCache } from './api/RedisCache.mts';
 
 let config : Config = getConfiguration() as Config;
 const hcbClients = [];
@@ -13,11 +14,13 @@ const hcbClients = [];
 // Axios \\
 axios.defaults.headers.post['User-Agent'] = config?.HCB.API.UserAgent;
 
+const cacheType = RedisCache;
+
 // End Global Initialization \\
 
 // HCB Fetcher Instances \\
 
-const client = new HCBFetcher(config.HCB.MonitoredOrganizations, config);
+const client = new HCBFetcher(config.HCB.MonitoredOrganizations, config, cacheType);
 await client.initializeModules();
 await client.runAllModules();
 hcbClients.push(client);

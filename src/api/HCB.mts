@@ -1,14 +1,16 @@
 import axios from 'axios';
-import nodeCache from 'node-cache';
 import { Card, Organization, Transaction } from '../types/HCB.ts';
+import { Cache, CacheName } from '../types/Cache.mts';
 
-const organizationCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
-const organizationTransactionCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
-const transactionCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
-const cardCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
 
-export async function getOrganization({ baseUrl, organization }: { baseUrl: string, organization: string }) : Promise<Organization> {
-  if (!organizationCache.has(organization.toLowerCase())) {
+// TODO: Remove in next release
+// const organizationCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
+// const organizationTransactionCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
+// const transactionCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
+// const cardCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
+
+export async function getOrganization({ baseUrl, organization, cache }: { baseUrl: string, organization: string, cache: Cache }) : Promise<Organization> {
+  if (!await cache.has(CacheName.Organization, organization.toLowerCase())) {
     // console.log(`Fetching organization ${organization} from API`);
     const response = await axios({
       method: "GET",
@@ -20,15 +22,15 @@ export async function getOrganization({ baseUrl, organization }: { baseUrl: stri
       validateStatus: () => true,
     });
   
-    organizationCache.set(organization.toLowerCase(), response.data);
+    cache.set(CacheName.Organization, organization.toLowerCase(), JSON.stringify(response.data));
   } else {
     // console.log(`Using cached organization ${organization}`);
   }
-  return organizationCache.get(organization.toLowerCase()) as Organization;
+  return JSON.parse(await cache.get(CacheName.Organization, organization.toLowerCase())) as Organization;
 }
 
-export async function getAllOrganizationTransactions({ baseUrl, organization }: { baseUrl: string, organization: string }) : Promise<Transaction[]> {
-  if (!organizationTransactionCache.has(organization)) {
+export async function getAllOrganizationTransactions({ baseUrl, organization, cache }: { baseUrl: string, organization: string, cache: Cache }) : Promise<Transaction[]> {
+  if (!await cache.has(CacheName.OrganizationTransaction, organization.toLowerCase())) {
     const response = await axios({
       method: "GET",
       headers: {
@@ -43,17 +45,17 @@ export async function getAllOrganizationTransactions({ baseUrl, organization }: 
       validateStatus: () => true,
     });
   
-    organizationTransactionCache.set(organization, response.data);
+    cache.set(CacheName.OrganizationTransaction, organization.toLowerCase(), JSON.stringify(response.data));
     // console.log(`Fetched ${response.data.length} transactions for organization ${organization} from API`);
   } else {
     // console.log(`Using ${(organizationTransactionCache.get(organization) as Transaction[]).length} cached transactions for organization ${organization}`);
   }
 
-  return organizationTransactionCache.get(organization) || [];
+  return JSON.parse(await cache.get(CacheName.OrganizationTransaction, organization.toLowerCase())) as Transaction[];
 }
 
-export async function getCard({ baseUrl, cardId }: { baseUrl: string, cardId: string }) : Promise<Card> {
-  if (!cardCache.has(cardId)) {
+export async function getCard({ baseUrl, cardId, cache }: { baseUrl: string, cardId: string, cache: Cache }) : Promise<Card> {
+  if (!await cache.has(CacheName.Card, cardId)) {
     const response = await axios({
       method: "GET",
       headers: {
@@ -68,17 +70,17 @@ export async function getCard({ baseUrl, cardId }: { baseUrl: string, cardId: st
       validateStatus: () => true,
     });
   
-    cardCache.set(cardId, response.data);
+    cache.set(CacheName.Card, cardId, JSON.stringify(response.data));
     // console.log(`Fetched data about card ${cardId} from API`);
   } else {
     // console.log(`Using cached card data about card ${cardId}`);
   }
 
-  return cardCache.get(cardId) || {} as Card;
+  return JSON.parse(await cache.get(CacheName.Card, cardId) || {}) as Card;
 }
 
-export async function getTransaction({ baseUrl, transactionId }: { baseUrl: string, transactionId: string }) : Promise<Transaction> {
-  if (!transactionCache.has(transactionId)) {
+export async function getTransaction({ baseUrl, transactionId, cache }: { baseUrl: string, transactionId: string, cache: Cache }) : Promise<Transaction> {
+  if (!await cache.has(CacheName.Transaction, transactionId)) {
     const response = await axios({
       method: "GET",
       headers: {
@@ -93,11 +95,11 @@ export async function getTransaction({ baseUrl, transactionId }: { baseUrl: stri
       validateStatus: () => true,
     });
   
-    transactionCache.set(transactionId, response.data);
+    cache.set(CacheName.Transaction, transactionId, JSON.stringify(response.data));
     // console.log(`Fetched data about transaction ${transactionId} from API`);
   } else {
     // console.log(`Using cached transaction data about transaction ${transactionId}`);
   }
 
-  return transactionCache.get(transactionId) || {} as Transaction;
+  return JSON.parse(await cache.get(CacheName.Transaction, transactionId) || {}) as Transaction;
 }

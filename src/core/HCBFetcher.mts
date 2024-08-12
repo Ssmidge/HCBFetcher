@@ -4,6 +4,8 @@ import SlackBot from "../modules/SlackBot.mts";
 import Logging from "../modules/Logging.mts";
 import SlackNotifier from "../modules/SlackNotifier.mts";
 import EventEmitter from 'node:events';
+import { Cache } from "../types/Cache.mts";
+import { RedisCache } from "../api/RedisCache.mts";
 
 export default class HCBFetcher {
     slackBot?: Bolt.App;
@@ -12,11 +14,13 @@ export default class HCBFetcher {
     moduleList: Module[] = [];
     yamlConfig: any;
     private eventEmitter;
+    cache: Cache;
 
-    constructor(organizations: string[], yamlConfig: any) {
+    constructor(organizations: string[], yamlConfig: any, cacheType: typeof Cache = RedisCache) {
         this.organizations = organizations;
         this.eventEmitter = new EventEmitter();
         this.yamlConfig = yamlConfig;
+        this.cache = new cacheType(this);
     }
 
     async initializeModules() {

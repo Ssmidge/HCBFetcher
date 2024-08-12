@@ -13,8 +13,8 @@ It can only monitor specific organizations for now, however more features are pl
 | Feature Name 	| Priority 	| Branch 	| Status 	|
 |--------------	|:--------:	|--------	|--------	|
 | EventEmitter 	| High     	|        	| 🧑‍💻     	|
-| Redis Cache  	| Medium   	|        	| ⌚      	|
-| Web API      	| Low      	|        	| ⌚      	|
+| Web API      	| Medium   	|        	| ⌚      	|
 | Website      	| Low      	|        	| ⌚      	|
 | KV Store     	| Low      	|        	| ⌚      	|
+| Redis Cache  	| Medium   	| main   	| ✅      	|
 | Slack bot    	| Medium   	| main   	| ✅      	|
