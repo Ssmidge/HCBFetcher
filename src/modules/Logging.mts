@@ -3,8 +3,8 @@ import Module from "../types/Module.ts";
 import { numberWithCommas } from "../utils/MoneyUtils.ts";
 
 export default class Logging extends Module {
-    constructor({ organization, client }: { organization: string, client: HCBFetcher }) {
-        super({ organization, client });
+    constructor({ organization, client, isMultiHandler } : { organization: string, client: HCBFetcher, isMultiHandler?: boolean }) {
+        super({ organization, client, isMultiHandler });
         this.id = "Logging";
     }
 

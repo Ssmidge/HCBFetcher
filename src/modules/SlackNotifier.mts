@@ -5,11 +5,10 @@ import { Transaction } from "../types/HCB.ts";
 import { CacheName } from "../types/Cache.mts";
 
 export default class SlackNotifier extends Module {
-    constructor({ organization, client }: { organization: string, client: HCBFetcher }) {
-        super({ organization, client });
+    static multiHandler: boolean = true;
+    constructor({ organization, client, isMultiHandler } : { organization: string, client: HCBFetcher, isMultiHandler?: boolean }) {
+        super({ organization, client, isMultiHandler });
         this.id = "slacknotif";
-        this.multiHandler = true;
-
     }
     
     async sendOutput({ organizations }: { organizations?: string[] | undefined | null }): Promise<any> {
@@ -21,6 +20,7 @@ export default class SlackNotifier extends Module {
         console.log(`${this.getLoggingPrefix("INFO")} SlackNotifier for ${this.client.organizations.length} organizations initialized`);
         const execute = async () => {
             const messageQueue: string[][] = [];
+            const newTransactionIDOrgs = new Set<string>();
             for (const org of orgNames) {
                 const lastTransaction = (await this.getOtherHCBOrganizationTransactions(org)).filter((t: Transaction) => (!t.memo.toLowerCase().includes("fiscal sponsorship for") || !t.memo) && t.amount_cents != 0.00)[0];
                 if (!lastTransaction) continue;
@@ -37,10 +37,11 @@ export default class SlackNotifier extends Module {
                     if (statusText) text.push(`*Status*: ${statusText.substring(0, 1).toUpperCase()}${statusText.substring(1)}`);
                 }
                 messageQueue.push(text);
+                newTransactionIDOrgs.add(org);
                 await this.client.cache.set(CacheName.LastTransactions, org, lastTransaction.id);
             }
-            
-            if (messageQueue.length >= this.client.organizations.length) {
+
+            if (messageQueue.length >= 1 && newTransactionIDOrgs.size >= 1) {
                 await this.client.slackBot?.client.chat.postMessage({
                     channel: this.client.yamlConfig.Slack.Channels.TransactionTracker as string,
                     mrkdwn: true,
@@ -54,6 +55,6 @@ export default class SlackNotifier extends Module {
             }
         };
         await execute();
-        setInterval(execute, 5 * 60 * 1000);
+        setInterval(execute, 1 * 60 * 1000);
     }
 }

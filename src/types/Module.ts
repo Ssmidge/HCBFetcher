@@ -11,7 +11,8 @@ export default class Module implements IModule {
     id: string = Module.name;
     organization: string;
     client: HCBFetcher;
-    multiHandler: boolean = false; // One handler per instance of per organization (Good for Slack stuff because of the ratelimits)
+    static multiHandler: boolean = false; // One handler per instance of per organization (Good for Slack stuff because of the ratelimits)
+    multiHandler: boolean = false;
 
     // TODO: Implement EventEmitter for the app
     once: boolean = false;

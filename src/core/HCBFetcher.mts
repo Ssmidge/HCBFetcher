@@ -30,10 +30,10 @@ export default class HCBFetcher {
     async initializeModules() {
         this.organizations.forEach((org) => {
             this.modulesToRun.forEach((module : typeof Module) => {
-                // quick check to not instantiate multiple times the same module
-                if (this.organizations.indexOf(org) == 0)
-                    this.moduleList.push(new module({ organization: org, client: this, isMultiHandler: true }));
-                else
+                if (module.multiHandler) {
+                    if (this.organizations.indexOf(org) != 0) return;
+                    this.moduleList.push(new module({ organization: "all", client: this, isMultiHandler: true }));
+                } else
                     this.moduleList.push(new module({ organization: org, client: this }));
             });
         });

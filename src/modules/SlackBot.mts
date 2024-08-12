@@ -7,11 +7,11 @@ import HCBFetcher from "../core/HCBFetcher.mts";
 
 
 export default class SlackBot extends Module {
+    static multiHandler: boolean = true;
     logLevel: LogLevel = SlackLogLevel.DEBUG;
-    constructor({ organization, client }: { organization: string, client: HCBFetcher }) {
-        super({ organization, client });
+    constructor({ organization, client, isMultiHandler } : { organization: string, client: HCBFetcher, isMultiHandler?: boolean }) {
+        super({ organization, client, isMultiHandler });
         this.id = "slackbot";
-        this.multiHandler = true;
         this.logLevel = client.yamlConfig.Logging.Level as unknown as LogLevel as SlackLogLevel;
         if (!this.client.slackBot) {
             this.client.setSlackBot(new Bolt.App({
