@@ -6,6 +6,10 @@ import { AutoRouter, ResponseHandler } from 'itty-router';
 import { Config } from './types/Configuration.ts';
 import axios from 'axios';
 import { RedisCache } from './api/RedisCache.mts';
+import Logging from './modules/Logging.mts';
+import SlackNotifier from './modules/SlackNotifier.mts';
+import SlackBot from './modules/SlackBot.mts';
+import WebAPI from './modules/WebAPI.mts';
 
 let config : Config = getConfiguration() as Config;
 const hcbClients = [];
@@ -16,11 +20,13 @@ axios.defaults.headers.post['User-Agent'] = config?.HCB.API.UserAgent;
 
 const cacheType = RedisCache;
 
+const allModules = [Logging, SlackBot, SlackNotifier, WebAPI];
+
 // End Global Initialization \\
 
 // HCB Fetcher Instances \\
 
-const client = new HCBFetcher(config.HCB.MonitoredOrganizations, config, cacheType);
+const client = new HCBFetcher(config.HCB.MonitoredOrganizations, config, allModules, cacheType);
 await client.initializeModules();
 await client.runAllModules();
 hcbClients.push(client);
@@ -34,8 +40,7 @@ console.log(`${getLoggingPrefix({ module: "SYSTEM", type: "INFO", highlight: tru
 // End Post-Initialization \\
 
 // Univeral todos and notes \\
-// TODO: Implement EventEmitter for the app - Working on this
-// TODO: Implement some sort of KV store to prevent duplicate messages on restart - Not started (Probably will use Redis or store a very small structure in something like PG or MySQL)
+// TODO: Implement EventEmitter for the app - Almost done
 
 // End Universal todos and notes \\
 

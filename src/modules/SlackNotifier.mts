@@ -9,6 +9,7 @@ export default class SlackNotifier extends Module {
         super({ organization, client });
         this.id = "slacknotif";
         this.multiHandler = true;
+
     }
     
     async sendOutput({ organizations }: { organizations?: string[] | undefined | null }): Promise<any> {

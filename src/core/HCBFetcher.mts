@@ -6,34 +6,35 @@ import SlackNotifier from "../modules/SlackNotifier.mts";
 import EventEmitter from 'node:events';
 import { Cache } from "../types/Cache.mts";
 import { RedisCache } from "../api/RedisCache.mts";
+import WebAPI from "../modules/WebAPI.mts";
+import { Config } from "../types/Configuration.ts";
 
 export default class HCBFetcher {
     slackBot?: Bolt.App;
     slackCommands: string[] = [];
     organizations: string[];
+    modulesToRun: typeof Module[] = [];
     moduleList: Module[] = [];
     yamlConfig: any;
     private eventEmitter;
     cache: Cache;
 
-    constructor(organizations: string[], yamlConfig: any, cacheType: typeof Cache = RedisCache) {
+    constructor(organizations: string[], yamlConfig: Config, modules: typeof Module[], cacheType: typeof Cache = RedisCache) {
         this.organizations = organizations;
         this.eventEmitter = new EventEmitter();
         this.yamlConfig = yamlConfig;
+        this.modulesToRun = modules;
         this.cache = new cacheType(this);
     }
 
     async initializeModules() {
         this.organizations.forEach((org) => {
-            const moduleList = [Logging, SlackBot, SlackNotifier];
-            moduleList.forEach((m : any) => {
-                const module = m as typeof Module;
+            this.modulesToRun.forEach((module : typeof Module) => {
                 // quick check to not instantiate multiple times the same module
-                if (module.prototype.multiHandler && this.organizations.indexOf(org) == 0)
+                if (this.organizations.indexOf(org) == 0)
                     this.moduleList.push(new module({ organization: org, client: this, isMultiHandler: true }));
                 else
                     this.moduleList.push(new module({ organization: org, client: this }));
-                // this.moduleList.splice(this.moduleList.indexOf(m), 1);
             });
         });
 
