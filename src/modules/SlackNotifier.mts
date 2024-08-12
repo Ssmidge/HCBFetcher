@@ -2,6 +2,7 @@ import Module from "../types/Module.ts";
 import { numberWithCommas } from "../utils/MoneyUtils.ts";
 import HCBFetcher from "../core/HCBFetcher.mts";
 import { Transaction } from "../types/HCB.ts";
+import { CacheName } from "../types/Cache.mts";
 
 export default class SlackNotifier extends Module {
     constructor({ organization, client }: { organization: string, client: HCBFetcher }) {
@@ -17,13 +18,12 @@ export default class SlackNotifier extends Module {
 
     async setupSlack(orgNames: string[]) {
         console.log(`${this.getLoggingPrefix("INFO")} SlackNotifier for ${this.client.organizations.length} organizations initialized`);
-        const lastTransactionIds = new Map<string, string>();
         const execute = async () => {
             const messageQueue: string[][] = [];
             for (const org of orgNames) {
                 const lastTransaction = (await this.getOtherHCBOrganizationTransactions(org)).filter((t: Transaction) => (!t.memo.toLowerCase().includes("fiscal sponsorship for") || !t.memo) && t.amount_cents != 0.00)[0];
                 if (!lastTransaction) continue;
-                if (lastTransactionIds.has(org) && lastTransactionIds.get(org) == lastTransaction.id) continue;
+                if (await this.client.cache.has(CacheName.LastTransactions, org) && await this.client.cache.get(CacheName.LastTransactions, org) == lastTransaction.id) continue;
                 const text = [];
                 if (lastTransaction.id) text.push(`<https://hcb.hackclub.com/hcb/${lastTransaction.id.split("txn_")[1]}|*NEW TRANSACTION*>`);
                 if (lastTransaction.organization?.name) text.push(`*Organization*: ${lastTransaction.organization.name}`);
@@ -36,7 +36,7 @@ export default class SlackNotifier extends Module {
                     if (statusText) text.push(`*Status*: ${statusText.substring(0, 1).toUpperCase()}${statusText.substring(1)}`);
                 }
                 messageQueue.push(text);
-                lastTransactionIds.set(org, lastTransaction.id);
+                await this.client.cache.set(CacheName.LastTransactions, org, lastTransaction.id);
             }
             
             if (messageQueue.length >= this.client.organizations.length) {

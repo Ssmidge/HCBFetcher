@@ -6,6 +6,7 @@ export enum CacheName {
     OrganizationTransactions = "orgtransactions",
     Card = "card",
     Transaction = "transaction",
+    LastTransactions = "lasttransactions",
 }
 
 
