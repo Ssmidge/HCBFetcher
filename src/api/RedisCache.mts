@@ -1,5 +1,5 @@
 import { createClient, RedisClientType } from 'redis';
-import { Cache, CacheName } from '../types/Cache.mts';
+import { Cache, CacheExpiration, CacheName } from '../types/Cache.mts';
 import HCBFetcher from '../core/HCBFetcher.mts';
 
 export class RedisCache extends Cache {
@@ -30,9 +30,12 @@ export class RedisCache extends Cache {
         return await this.client.hGet(name, key);
     }
 
-    async set(name: CacheName, key: string, value: string): Promise<void> {
+    async set(name: CacheName, key: string, value: string, expiration: CacheExpiration = CacheExpiration.TEN_MINUTES): Promise<void> {
         await this.client.hSet(name, key, value);
-        await this.client.hExpire(name, key, this.expiration, "NX");
+        if (expiration >= 0)
+            await this.client.hExpire(name, key, expiration, "NX");
+        else
+            await this.client.hPersist(name, key);
     }
 
     async del(name: CacheName, key: string): Promise<void> {

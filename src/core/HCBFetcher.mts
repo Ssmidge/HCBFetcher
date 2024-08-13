@@ -8,16 +8,18 @@ import { Cache } from "../types/Cache.mts";
 import { RedisCache } from "../api/RedisCache.mts";
 import WebAPI from "../modules/WebAPI.mts";
 import { Config } from "../types/Configuration.ts";
+import { Logger, LogLevel } from "../api/Logger.mts";
 
 export default class HCBFetcher {
+    private eventEmitter;
     slackBot?: Bolt.App;
     slackCommands: string[] = [];
     organizations: string[];
     modulesToRun: typeof Module[] = [];
     moduleList: Module[] = [];
-    yamlConfig: any;
-    private eventEmitter;
+    yamlConfig: Config;
     cache: Cache;
+    logger: Logger;
 
     constructor(organizations: string[], yamlConfig: Config, modules: typeof Module[], cacheType: typeof Cache = RedisCache) {
         this.organizations = organizations;
@@ -25,6 +27,7 @@ export default class HCBFetcher {
         this.yamlConfig = yamlConfig;
         this.modulesToRun = modules;
         this.cache = new cacheType(this);
+        this.logger = new Logger(this.yamlConfig.Logging.Level as LogLevel);
     }
 
     async initializeModules() {

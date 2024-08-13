@@ -38,7 +38,7 @@ export async function getAllOrganizationTransactions({ baseUrl, organization, ca
           "Content-Type": "application/json",
         },
       params: {
-        "expand": "user,organization,ach_transfer,check,donation,invoice,transfer,card_charge",
+        "expand": "user,ach_transfer,check,donation,invoice,transfer,card_charge",
         "per_page": "15"
       },
       url: `${baseUrl}/organizations/${organization}/transactions`,

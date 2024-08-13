@@ -2,7 +2,8 @@ import Module from "../types/Module.ts";
 import { numberWithCommas } from "../utils/MoneyUtils.ts";
 import HCBFetcher from "../core/HCBFetcher.mts";
 import { Transaction } from "../types/HCB.ts";
-import { CacheName } from "../types/Cache.mts";
+import { CacheExpiration, CacheName } from "../types/Cache.mts";
+import { LogLevel } from "../api/Logger.mts";
 
 export default class SlackNotifier extends Module {
     static multiHandler: boolean = true;
@@ -17,14 +18,14 @@ export default class SlackNotifier extends Module {
     }
 
     async setupSlack(orgNames: string[]) {
-        console.log(`${this.getLoggingPrefix("INFO")} SlackNotifier for ${this.client.organizations.length} organizations initialized`);
+        this.log(LogLevel.INFO, `SlackNotifier for ${this.client.organizations.length} organizations initialized`);
         const execute = async () => {
             const messageQueue: string[][] = [];
             const newTransactionIDOrgs = new Set<string>();
             for (const org of orgNames) {
                 const lastTransaction = (await this.getOtherHCBOrganizationTransactions(org)).filter((t: Transaction) => (!t.memo.toLowerCase().includes("fiscal sponsorship for") || !t.memo) && t.amount_cents != 0.00)[0];
                 if (!lastTransaction) continue;
-                if (await this.client.cache.has(CacheName.LastTransactions, org) && await this.client.cache.get(CacheName.LastTransactions, org) == lastTransaction.id) continue;
+                if (await this.client.cache.get(CacheName.LastTransactions, org) == lastTransaction.id) continue;
                 const text = [];
                 if (lastTransaction.id) text.push(`<https://hcb.hackclub.com/hcb/${lastTransaction.id.split("txn_")[1]}|*NEW TRANSACTION*>`);
                 if (lastTransaction.organization?.name) text.push(`*Organization*: ${lastTransaction.organization.name}`);
@@ -38,7 +39,7 @@ export default class SlackNotifier extends Module {
                 }
                 messageQueue.push(text);
                 newTransactionIDOrgs.add(org);
-                await this.client.cache.set(CacheName.LastTransactions, org, lastTransaction.id);
+                await this.client.cache.set(CacheName.LastTransactions, org, lastTransaction.id, CacheExpiration.NEVER);
             }
 
             if (messageQueue.length >= 1 && newTransactionIDOrgs.size >= 1) {

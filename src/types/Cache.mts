@@ -9,10 +9,13 @@ export enum CacheName {
     LastTransactions = "lasttransactions",
 }
 
+export enum CacheExpiration {
+    TEN_MINUTES = 10 * 60,
+    NEVER = -1,
+}
+
 
 export class Cache implements ICache {
-
-    expiration : number = 10 * 60;
 
     constructor(hcbClient: HCBFetcher) {
         this.hcbClient = hcbClient;
@@ -24,7 +27,7 @@ export class Cache implements ICache {
     disconnect(): Promise<void> { throw new Error("Method not implemented."); }
     test(): Promise<void> { throw new Error("Method not implemented."); }
     get(name: CacheName, key: string): Promise<any | undefined | null> { throw new Error("Method not implemented."); }
-    set(name: CacheName, key: string, value: any): Promise<void> { throw new Error("Method not implemented."); }
+    set(name: CacheName, key: string, value: any, expiration: CacheExpiration = CacheExpiration.TEN_MINUTES): Promise<void> { throw new Error("Method not implemented."); }
     del(name: CacheName, key: string): Promise<void> { throw new Error("Method not implemented."); }
     keys(name: CacheName): Promise<string[]> { throw new Error("Method not implemented."); }
     has(name: CacheName, key: string): Promise<boolean> { throw new Error("Method not implemented."); }
@@ -36,7 +39,7 @@ interface ICache {
     disconnect(): Promise<void>;
     test(): Promise<void>;
     get(name: CacheName, key: string): Promise<any | undefined | null>;
-    set(name: CacheName, key: string, value: any): Promise<void>;
+    set(name: CacheName, key: string, value: any, expiration: CacheExpiration): Promise<void>;
     del(name: CacheName, key: string): Promise<void>;
     keys(name: CacheName): Promise<string[]>;
     has(name: CacheName, key: string): Promise<boolean>;

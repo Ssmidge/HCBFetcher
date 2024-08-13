@@ -8,37 +8,36 @@ import HCBFetcher from "../core/HCBFetcher.mts";
 
 export default class SlackBot extends Module {
     static multiHandler: boolean = true;
-    logLevel: LogLevel = SlackLogLevel.DEBUG;
+    logLevel: LogLevel = LogLevel.DEBUG;
     constructor({ organization, client, isMultiHandler } : { organization: string, client: HCBFetcher, isMultiHandler?: boolean }) {
         super({ organization, client, isMultiHandler });
         this.id = "slackbot";
-        this.logLevel = client.yamlConfig.Logging.Level as unknown as LogLevel as SlackLogLevel;
+        this.logLevel = LogLevel[client.yamlConfig.Logging.Level as keyof typeof LogLevel];
         if (!this.client.slackBot) {
             this.client.setSlackBot(new Bolt.App({
                 token: this.client.yamlConfig.Slack.Tokens.Bot,
                 signingSecret: this.client.yamlConfig.Slack.Secrets.Signing,
                 socketMode: true, // add this
                 appToken: this.client.yamlConfig.Slack.Tokens.App,
-                logLevel: this.logLevel,
+                logLevel: this.logLevel.toLowerCase() as SlackLogLevel,
                 logger: {
                     debug: (...msgs) => { 
-                        if (this.logLevel == LogLevel.DEBUG)
-                            console.log(`${this.getLoggingPrefix("DEBUG")} ${JSON.stringify(msgs)}`) 
+                            this.log(LogLevel.DEBUG, JSON.stringify(msgs))
                     },
                     info: (...msgs) => { 
                         if ([LogLevel.INFO, LogLevel.DEBUG, LogLevel.WARN, LogLevel.ERROR].includes(this.logLevel))
-                            console.log(`${this.getLoggingPrefix("INFO")} ${JSON.stringify(msgs)}`) 
+                            this.log(LogLevel.INFO, JSON.stringify(msgs))
                     },
                     warn: (...msgs) => { 
                         if ([LogLevel.DEBUG, LogLevel.WARN, LogLevel.ERROR].includes(this.logLevel))
-                            console.log(`${this.getLoggingPrefix("WARNING")} ${JSON.stringify(msgs)}`) 
+                            this.log(LogLevel.WARN, JSON.stringify(msgs))
                     },
                     error: (...msgs) => {
                         if ([LogLevel.DEBUG, LogLevel.ERROR].includes(this.logLevel))
-                            console.log(`${this.getLoggingPrefix("SLACK")} ${JSON.stringify(msgs)}`) 
+                            this.log(LogLevel.ERROR, JSON.stringify(msgs))
                     },
                     setLevel: () => { },
-                    getLevel: () => { return this.logLevel; },
+                    getLevel: () => { return this.logLevel.toLocaleLowerCase() as SlackLogLevel; },
                     setName: () => { },
                 },
             }));
@@ -46,13 +45,13 @@ export default class SlackBot extends Module {
             try {
                 (this.client.slackBot as unknown as Bolt.App).start();
             } catch (error) {
-                console.log(`${this.getLoggingPrefix("ERROR")} ${error}`);
+                this.log(LogLevel.ERROR, `Error starting SlackBot: ${error}`);
             }
         }
     }
     
     async sendOutput(): Promise<any> {
-        console.log(`${this.getLoggingPrefix("INFO")} SlackBot for ${this.client.organizations.length} organizations initialized`);
+        this.log(LogLevel.INFO, `SlackBot for ${this.client.organizations.length} organizations initialized`);
         this.setupSlack();
     }
 
@@ -62,7 +61,6 @@ export default class SlackBot extends Module {
         this.client.slackBot?.command("/hcb", async ({ command, ack, respond }) => {
             await ack();
             await respond({ replace_original: true, text: "Processing your command..." });
-            console.log(`${this.getLoggingPrefix("SLACK")} Processing command: ${command.text}`);
             try {
                 const subCommand = command.text.split(" ")[0];
                 switch (subCommand) {
@@ -171,7 +169,7 @@ export default class SlackBot extends Module {
                     }
                 };
             } catch (error) {
-                console.log(`${this.getLoggingPrefix("SLACK")} ${error}`) ;
+                this.log(LogLevel.ERROR, `Error processing command: ${error}`);
                 await respond({ replace_original: true,text: "An error occurred while processing your command." });
             }
         });

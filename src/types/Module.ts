@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { getAllOrganizationTransactions, getCard, getOrganization, getTransaction } from "../api/HCB.mts";
 import { getConfiguration } from "../api/ConfigurationLoader.mts";
 import { Card, Organization, Transaction } from "./HCB.ts";
-import { getLoggingPrefix, LogType } from "../api/Logger.mts";
+import { LogLevel } from "../api/Logger.mts";
 import HCBFetcher from "../core/HCBFetcher.mts";
 
 const config = getConfiguration();
@@ -42,8 +42,12 @@ export default class Module implements IModule {
     public async sendOutput({ organizations }: { organizations?: string[] | undefined | null }): Promise<any> {
         throw new Error("Method not implemented.");
     }
-    protected getLoggingPrefix(type : LogType) : string {
-        return getLoggingPrefix({ module: this.id, type });
+    protected log(level: LogLevel, message: string) {
+        return this.client.logger.log({
+            level,
+            message,
+            module: this.id,
+        });
     }
 
     constructor({ organization, client, isMultiHandler } : { organization: string, client: HCBFetcher, isMultiHandler?: boolean }) {

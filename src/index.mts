@@ -1,5 +1,4 @@
 import { getConfiguration } from './api/ConfigurationLoader.mts';
-import { getLoggingPrefix } from './api/Logger.mts';
 import HCBFetcher from './core/HCBFetcher.mts';
 import "dotenv/config";
 import { AutoRouter, ResponseHandler } from 'itty-router';
@@ -10,6 +9,7 @@ import Logging from './modules/Logging.mts';
 import SlackNotifier from './modules/SlackNotifier.mts';
 import SlackBot from './modules/SlackBot.mts';
 import WebAPI from './modules/WebAPI.mts';
+import { LogLevel } from './api/Logger.mts';
 
 let config : Config = getConfiguration() as Config;
 const hcbClients = [];
@@ -20,7 +20,7 @@ axios.defaults.headers.post['User-Agent'] = config?.HCB.API.UserAgent;
 
 const cacheType = RedisCache;
 
-const allModules = [Logging, SlackBot, SlackNotifier, WebAPI];
+const allModules = [Logging, SlackNotifier, WebAPI];
 
 // End Global Initialization \\
 
@@ -34,8 +34,8 @@ hcbClients.push(client);
 // End HCB Fetcher Instances \\
 
 // Post-Initialization \\
-console.log(`${getLoggingPrefix({ module: "SYSTEM", type: "INFO", highlight: true })} Done initializing modules`);
-console.log(`${getLoggingPrefix({ module: "SYSTEM", type: "INFO", highlight: true })} Monitoring ${config.HCB.MonitoredOrganizations.length} organizations`);
+client.logger.log({ module: "SYSTEM", level: LogLevel.INFO, message: `Done initializing modules`, highlight: true });
+client.logger.log({ module: "SYSTEM", level: LogLevel.INFO, message: `Monitoring ${config.HCB.MonitoredOrganizations.length} organizations`, highlight: true });
 
 // End Post-Initialization \\
 
