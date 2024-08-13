@@ -21,7 +21,8 @@ export default class SlackBot extends Module {
                 appToken: this.client.yamlConfig.Slack.Tokens.App,
                 logLevel: this.logLevel.toLowerCase() as SlackLogLevel,
                 logger: {
-                    debug: (...msgs) => { 
+                    debug: (...msgs) => {
+                        if ([LogLevel.DEBUG].includes(this.logLevel))
                             this.log(LogLevel.DEBUG, JSON.stringify(msgs))
                     },
                     info: (...msgs) => { 

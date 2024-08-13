@@ -20,7 +20,7 @@ axios.defaults.headers.post['User-Agent'] = config?.HCB.API.UserAgent;
 
 const cacheType = RedisCache;
 
-const allModules = [Logging, SlackNotifier, WebAPI];
+const allModules = [Logging, SlackNotifier, SlackBot, WebAPI];
 
 // End Global Initialization \\
 

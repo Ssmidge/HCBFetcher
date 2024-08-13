@@ -1,5 +1,6 @@
 import { LogLevel, sixteenColorChalk } from "../api/Logger.mts";
 import HCBFetcher from "../core/HCBFetcher.mts";
+import { Transaction } from "../types/HCB.ts";
 import Module from "../types/Module.ts";
 import { numberWithCommas } from "../utils/MoneyUtils.ts";
 
@@ -22,9 +23,8 @@ export default class Logging extends Module {
         
         setInterval(async () => {
             lastTransactions = await this.getHCBOrganizationTransactions();
-            lastTransaction = lastTransactions.filter((t) => t.type == "card_charge")[0];
+            lastTransaction = lastTransactions.filter((t: Transaction) => (!t.memo.toLowerCase().includes("fiscal sponsorship for") || !t.memo) && t.amount_cents != 0.00)[0];
             if (!lastTransaction) return;
-            console.log(lastTransaction);
             this.log(LogLevel.INFO, `The last transaction for ${organizationData.name} was a ${lastTransaction.amount_cents < 0 ? 'debit' : 'credit'} of $${numberWithCommas(Math.abs(lastTransaction.amount_cents / 100))}`);
             this.client.emit("loggingExecuted", this, lastTransaction);
         }, 5 * 60 * 1000);
