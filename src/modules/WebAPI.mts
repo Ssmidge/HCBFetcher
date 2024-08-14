@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import HCBFetcher from "../core/HCBFetcher.mts";
-import { Organization } from "../types/HCB.ts";
 import Module from "../types/Module.ts";
 import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
 
@@ -15,14 +15,14 @@ export default class WebAPI extends Module {
         });
     }
 
-    public async sendOutput() : Promise<any> {
+    public async sendOutput() {
         await this.addRoutes();
 
         try {
-            this.router.listen({ port: 3000 })
+            this.router.listen({ port: 3000 });
           } catch (err) {
-            this.router.log.error(err)
-            process.exit(1)
+            this.router.log.error(err);
+            process.exit(1);
         }
     }
     private async addRoutes() {
@@ -64,16 +64,16 @@ export default class WebAPI extends Module {
                         slug: organization.slug,
                         name: organization.name,
                         users: organization.users.length,
-                    }
+                    };
                 })),
             };
         });
         
         this.router.get('/api/v1/hcb/organizations/:organization', async (request : FastifyRequest, reply : FastifyReply) => {
-            const organization = await this.getOtherHCBOrganization((request.params as any).organization);
+            const organization = await this.getOtherHCBOrganization((request.params as { organization: string }).organization);
             if (!organization) return { status: "NOT_FOUND" };
             if (organization.message) return { status: "ERROR", message: organization.message };
-            const orgTransactions = await this.getOtherHCBOrganizationTransactions((request.params as any).organization);
+            const orgTransactions = await this.getOtherHCBOrganizationTransactions((request.params as { organization: string }).organization);
             return {
                 status: "OK",
                 id: organization.id,
@@ -93,7 +93,7 @@ export default class WebAPI extends Module {
         });
 
         this.router.get('/api/v1/hcb/transactions/:transaction', async (request : FastifyRequest, reply : FastifyReply) => {
-            const transaction = await this.getHCBTransaction((request.params as any).transaction);
+            const transaction = await this.getHCBTransaction((request.params as { transaction: string }).transaction);
             if (!transaction) return { status: "NOT_FOUND" };
             if (transaction.message) return { status: "ERROR", message: transaction.message };
             return {
@@ -107,7 +107,7 @@ export default class WebAPI extends Module {
         });
 
         this.router.get('/api/v1/hcb/cards/:card', async (request : FastifyRequest, reply : FastifyReply) => {
-            const card = await this.getHCBCard((request.params as any).card);
+            const card = await this.getHCBCard((request.params as { card: string }).card);
             if (!card) return { status: "NOT_FOUND" };
             if (card.message) return { status: "ERROR", message: card.message };
             return {

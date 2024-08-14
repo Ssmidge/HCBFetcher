@@ -10,7 +10,7 @@ export default class Logging extends Module {
         this.id = "Logging";
     }
 
-    async sendOutput(): Promise<any> {
+    async sendOutput() {
         const organizationData = await this.getHCBOrganization();
         let lastTransactions = await this.getHCBOrganizationTransactions();
         let lastTransaction = lastTransactions[0];
@@ -25,7 +25,7 @@ export default class Logging extends Module {
             lastTransactions = await this.getHCBOrganizationTransactions();
             lastTransaction = lastTransactions.filter((t: Transaction) => (!t.memo.toLowerCase().includes("fiscal sponsorship for") || !t.memo) && t.amount_cents != 0.00)[0];
             if (!lastTransaction) return;
-            this.log(LogLevel.INFO, `The last transaction for ${organizationData.name} was a ${lastTransaction.amount_cents < 0 ? 'debit' : 'credit'} of $${numberWithCommas(Math.abs(lastTransaction.amount_cents / 100))}`);
+            this.log(LogLevel.INFO, `[${sixteenColorChalk.yellow("TRANSACTION")}${sixteenColorChalk.reset()}] The last transaction for ${organizationData.name} was a ${lastTransaction.amount_cents < 0 ? 'debit' : 'credit'} of $${numberWithCommas(Math.abs(lastTransaction.amount_cents / 100))}`);
             this.client.emit("loggingExecuted", this, lastTransaction);
         }, 5 * 60 * 1000);
         return null;

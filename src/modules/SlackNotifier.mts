@@ -12,7 +12,7 @@ export default class SlackNotifier extends Module {
         this.id = "slacknotif";
     }
     
-    async sendOutput({ organizations }: { organizations?: string[] | undefined | null }): Promise<any> {
+    async sendOutput({ organizations }: { organizations?: string[] | undefined | null }) {
         if (!organizations) throw new Error("No organizations provided");
         this.setupSlack(organizations);
     }

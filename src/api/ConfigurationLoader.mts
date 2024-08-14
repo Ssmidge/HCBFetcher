@@ -9,13 +9,14 @@ function parseYAMLConfigurationFile() : Config {
     return YAML.parse(configurationFile);
 }
 
-function parseEnvironmentConfiguration(env: any) : Config {
+function parseEnvironmentConfiguration(env: NodeJS.ProcessEnv) : Config {
     // Each _ is part of the type wohoo
     const config: Config = new Config();
 
-    for (const [key, value] of Object.entries(env) as [string, any][]) {
+    for (const [key, value] of Object.entries(env) as [string, string][]) {
         const keys = key.split('_');
-        let current: any = config;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let current : any = config;
 
         const topLevelKeys: (keyof Config)[] = Object.keys(config) as (keyof Config)[];
         const allNestedKeys = topLevelKeys.flatMap((key) => getAllNestedKeys(config[key]));
@@ -42,7 +43,7 @@ function parseEnvironmentConfiguration(env: any) : Config {
     
 }
 
-export function getConfiguration(env: any = process.env) : Config {
+export function getConfiguration(env: NodeJS.ProcessEnv = process.env) : Config {
     if (!config || config.HCB.API.BaseUrl.length <= 1) {
         try {
             config = parseYAMLConfigurationFile();
@@ -65,7 +66,7 @@ function getAllNestedKeys(obj: object): string[] {
   
     for (const key of Object.keys(obj)) {
       keys.push(key);
-      const value = obj[key as keyof typeof obj] as unknown as any;
+      const value = obj[key as keyof typeof obj] as unknown as object;
   
       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
         const nestedKeys = getAllNestedKeys(value);

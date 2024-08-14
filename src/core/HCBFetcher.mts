@@ -1,12 +1,8 @@
 import Bolt from "@slack/bolt";
 import Module from "../types/Module.ts";
-import SlackBot from "../modules/SlackBot.mts";
-import Logging from "../modules/Logging.mts";
-import SlackNotifier from "../modules/SlackNotifier.mts";
 import EventEmitter from 'node:events';
 import { Cache } from "../types/Cache.mts";
 import { RedisCache } from "../api/RedisCache.mts";
-import WebAPI from "../modules/WebAPI.mts";
 import { Config } from "../types/Configuration.ts";
 import { Logger, LogLevel } from "../api/Logger.mts";
 
@@ -35,9 +31,26 @@ export default class HCBFetcher {
             this.modulesToRun.forEach((module : typeof Module) => {
                 if (module.multiHandler) {
                     if (this.organizations.indexOf(org) != 0) return;
-                    this.moduleList.push(new module({ organization: "all", client: this, isMultiHandler: true }));
-                } else
-                    this.moduleList.push(new module({ organization: org, client: this }));
+                    try {
+                        this.moduleList.push(new module({ organization: "all", client: this, isMultiHandler: true }));
+                    } catch(e) {
+                        const error: Error = e as Error;
+                        this.logger.error({
+                            module: module.name,
+                            message: error.message,
+                        });
+                    }
+                } else {
+                    try {
+                        this.moduleList.push(new module({ organization: org, client: this }));
+                    } catch (e) {
+                        const error: Error = e as Error;
+                        this.logger.error({
+                            module: module.name,
+                            message: error.message,
+                        });
+                    }
+                }
             });
         });
 
@@ -51,14 +64,30 @@ export default class HCBFetcher {
         .filter((module, index, self) => self.findIndex((m) => m.constructor.name === module.constructor.name) === index);
         this.moduleList.forEach((module) => {
             if (!module.multiHandler) {
-                module.sendOutput({});
-                this.eventEmitter.emit("moduleExecuted", this, module);
+                try {
+                    module.sendOutput({});
+                    this.eventEmitter.emit("moduleExecuted", this, module);
+                } catch (e) {
+                    const error: Error = e as Error;
+                    this.logger.error({
+                        module: module.id,
+                        message: error.message,
+                    });
+                }
             }
         });
         filteredModules.forEach((module) => {
             module.organization = "all";
-            module.sendOutput({ organizations: this.organizations });
-            this.eventEmitter.emit("moduleExecuted", this, module);
+            try {
+                module.sendOutput({ organizations: this.organizations });
+                this.eventEmitter.emit("moduleExecuted", this, module);
+            } catch(e) {
+                const error: Error = e as Error;
+                this.logger.error({
+                    module: module.id,
+                    message: error.message,
+                });
+            }
         });
 
         this.eventEmitter.emit("modulesExecuted", this, this.moduleList);
@@ -74,19 +103,19 @@ export default class HCBFetcher {
      * @date today (7/8/2024, DD/MM/YYYY)
      */
 
-    on(event: HCBEvent, listener: (...args: any[]) => void) {
+    on(event: HCBEvent, listener: (...args: unknown[]) => void) {
         this.eventEmitter.on(event, listener);
     }
 
-    emit(event: HCBEvent, ...args: any[]) {
+    emit(event: HCBEvent, ...args: unknown[]) {
         this.eventEmitter.emit(event, ...args);
     }
 
-    once(event: HCBEvent, listener: (...args: any[]) => void) {
+    once(event: HCBEvent, listener: (...args: unknown[]) => void) {
         this.eventEmitter.once(event, listener);
     }
 
-    off(event: HCBEvent, listener: (...args: any[]) => void) {
+    off(event: HCBEvent, listener: (...args: unknown[]) => void) {
         this.eventEmitter.off(event, listener);
     }
 

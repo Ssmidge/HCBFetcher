@@ -158,4 +158,4 @@ export {
     Transaction,
     Organization,
     Card,
-}
+};

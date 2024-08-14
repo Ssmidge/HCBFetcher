@@ -1,4 +1,3 @@
-import chalk from "chalk";
 import { getAllOrganizationTransactions, getCard, getOrganization, getTransaction } from "../api/HCB.mts";
 import { getConfiguration } from "../api/ConfigurationLoader.mts";
 import { Card, Organization, Transaction } from "./HCB.ts";
@@ -39,7 +38,8 @@ export default class Module implements IModule {
     protected async getHCBCard(cardId: string): Promise<Card> {
         return await getCard({ baseUrl: config.HCB.API.BaseUrl, cardId, cache: this.client.cache });
     }
-    public async sendOutput({ organizations }: { organizations?: string[] | undefined | null }): Promise<any> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public async sendOutput({ organizations }: { organizations?: string[] | undefined | null }): Promise<unknown> {
         throw new Error("Method not implemented.");
     }
     protected log(level: LogLevel, message: string) {
@@ -64,5 +64,5 @@ export default class Module implements IModule {
 interface IModule {
     id: string;
     organization: string;
-    sendOutput({ organizations }: { organizations: string[] | undefined | null }): Promise<any>;
+    sendOutput({ organizations }: { organizations: string[] | undefined | null }): Promise<unknown>;
 }

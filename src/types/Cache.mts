@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { RedisClientType } from "redis";
 import HCBFetcher from "../core/HCBFetcher.mts";
 
@@ -26,8 +27,9 @@ export class Cache implements ICache {
     connect(): Promise<void> { throw new Error("Method not implemented."); }
     disconnect(): Promise<void> { throw new Error("Method not implemented."); }
     test(): Promise<void> { throw new Error("Method not implemented."); }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     get(name: CacheName, key: string): Promise<any | undefined | null> { throw new Error("Method not implemented."); }
-    set(name: CacheName, key: string, value: any, expiration: CacheExpiration = CacheExpiration.TEN_MINUTES): Promise<void> { throw new Error("Method not implemented."); }
+    set(name: CacheName, key: string, value: unknown, expiration: CacheExpiration = CacheExpiration.TEN_MINUTES): Promise<void> { throw new Error("Method not implemented."); }
     del(name: CacheName, key: string): Promise<void> { throw new Error("Method not implemented."); }
     keys(name: CacheName): Promise<string[]> { throw new Error("Method not implemented."); }
     has(name: CacheName, key: string): Promise<boolean> { throw new Error("Method not implemented."); }

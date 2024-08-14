@@ -1,6 +1,5 @@
-import { getOrganization } from "../api/HCB.mts";
 import Module from "../types/Module.ts";
-import Bolt, { AckFn, RespondFn, LogLevel as SlackLogLevel, SlashCommand } from "@slack/bolt";
+import Bolt, { LogLevel as SlackLogLevel } from "@slack/bolt";
 import { numberWithCommas } from "../utils/MoneyUtils.ts";
 import { LogLevel } from "../api/Logger.mts";
 import HCBFetcher from "../core/HCBFetcher.mts";
@@ -23,35 +22,31 @@ export default class SlackBot extends Module {
                 logger: {
                     debug: (...msgs) => {
                         if ([LogLevel.DEBUG].includes(this.logLevel))
-                            this.log(LogLevel.DEBUG, JSON.stringify(msgs))
+                            this.log(LogLevel.DEBUG, JSON.stringify(msgs));
                     },
                     info: (...msgs) => { 
                         if ([LogLevel.INFO, LogLevel.DEBUG, LogLevel.WARN, LogLevel.ERROR].includes(this.logLevel))
-                            this.log(LogLevel.INFO, JSON.stringify(msgs))
+                            this.log(LogLevel.INFO, JSON.stringify(msgs));
                     },
                     warn: (...msgs) => { 
                         if ([LogLevel.DEBUG, LogLevel.WARN, LogLevel.ERROR].includes(this.logLevel))
-                            this.log(LogLevel.WARN, JSON.stringify(msgs))
+                            this.log(LogLevel.WARN, JSON.stringify(msgs));
                     },
                     error: (...msgs) => {
                         if ([LogLevel.DEBUG, LogLevel.ERROR].includes(this.logLevel))
-                            this.log(LogLevel.ERROR, JSON.stringify(msgs))
+                            this.log(LogLevel.ERROR, JSON.stringify(msgs));
                     },
                     setLevel: () => { },
-                    getLevel: () => { return this.logLevel.toLocaleLowerCase() as SlackLogLevel; },
+                    getLevel: () => { return this.client.logger.logLevel.toLocaleLowerCase() as SlackLogLevel; },
                     setName: () => { },
                 },
             }));
     
-            try {
-                (this.client.slackBot as unknown as Bolt.App).start();
-            } catch (error) {
-                this.log(LogLevel.ERROR, `Error starting SlackBot: ${error}`);
-            }
+            (this.client.slackBot as unknown as Bolt.App).start();
         }
     }
     
-    async sendOutput(): Promise<any> {
+    async sendOutput() {
         this.log(LogLevel.INFO, `SlackBot for ${this.client.organizations.length} organizations initialized`);
         this.setupSlack();
     }

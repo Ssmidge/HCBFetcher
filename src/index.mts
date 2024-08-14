@@ -1,7 +1,6 @@
 import { getConfiguration } from './api/ConfigurationLoader.mts';
 import HCBFetcher from './core/HCBFetcher.mts';
 import "dotenv/config";
-import { AutoRouter, ResponseHandler } from 'itty-router';
 import { Config } from './types/Configuration.ts';
 import axios from 'axios';
 import { RedisCache } from './api/RedisCache.mts';
@@ -11,9 +10,8 @@ import SlackBot from './modules/SlackBot.mts';
 import WebAPI from './modules/WebAPI.mts';
 import { LogLevel } from './api/Logger.mts';
 
-let config : Config = getConfiguration() as Config;
+const config : Config = getConfiguration() as Config;
 const hcbClients = [];
-
 // Global Initialization \\
 // Axios \\
 axios.defaults.headers.post['User-Agent'] = config?.HCB.API.UserAgent;

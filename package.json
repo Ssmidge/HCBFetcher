@@ -4,8 +4,8 @@
   "description": "",
   "main": "src/index.mts",
   "scripts": {
-    "start": "node --loader ts-node/esm ./src/index.mts",
-    "dev": "nodemon --loader ts-node/esm src/index.mts",
+    "start": "node --loader ts-node/esm --disable-warning=ExperimentalWarning ./src/index.mts",
+    "dev": "nodemon --loader ts-node/esm --disable-warning=ExperimentalWarning src/index.mts",
     "lint": "eslint ./src/**/.ts"
   },
   "keywords": [
@@ -17,24 +17,29 @@
   "author": "Ssmidge",
   "license": "ISC",
   "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "@types/eslint__js": "^8.42.3",
     "@types/node": "^22.0.2",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.8.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4",
+    "typescript-eslint": "^8.1.0",
     "wrangler": "^3.70.0"
   },
   "dependencies": {
     "@cloudflare/workers-types": "^4.20240806.0",
     "@slack/bolt": "^3.19.0",
     "@slack/socket-mode": "^2.0.0",
+    "@types/nodegit": "^0.28.7",
     "axios": "^1.7.3",
     "chalk": "^5.3.0",
     "dotenv": "^16.4.5",
     "fastify": "^4.28.1",
     "itty-router": "^5.0.17",
     "node-cache": "^5.1.2",
+    "nodegit": "0.28.0-alpha.28",
     "redis": "^4.7.0",
     "yaml": "^2.5.0"
   }
