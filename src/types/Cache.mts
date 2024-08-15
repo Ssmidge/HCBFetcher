@@ -12,6 +12,7 @@ export enum CacheName {
 
 export enum CacheExpiration {
     TEN_MINUTES = 10 * 60,
+    FIVE_MINUTES = 5 * 60,
     NEVER = -1,
 }
 

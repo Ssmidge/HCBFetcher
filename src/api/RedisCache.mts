@@ -30,7 +30,7 @@ export class RedisCache extends Cache {
         return await this.client.hGet(name, key);
     }
 
-    async set(name: CacheName, key: string, value: string, expiration: CacheExpiration = CacheExpiration.TEN_MINUTES): Promise<void> {
+    async set(name: CacheName, key: string, value: string, expiration: CacheExpiration = CacheExpiration.FIVE_MINUTES): Promise<void> {
         await this.client.hSet(name, key, value);
         if (expiration >= 0)
             await this.client.hExpire(name, key, expiration, "NX");

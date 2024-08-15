@@ -40,13 +40,12 @@ export default class SlackBot extends Module {
                     getLevel: () => { return this.client.logger.logLevel.toLocaleLowerCase() as SlackLogLevel; },
                     setName: () => { },
                 },
-            }));
-    
-            (this.client.slackBot as unknown as Bolt.App).start();
+            }));    
         }
     }
     
     async sendOutput() {
+        (this.client.slackBot as unknown as Bolt.App).start();
         this.log(LogLevel.INFO, `SlackBot for ${this.client.organizations.length} organizations initialized`);
         this.setupSlack();
     }
