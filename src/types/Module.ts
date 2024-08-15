@@ -26,16 +26,17 @@ export default class Module implements IModule {
         else
             return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization.toLowerCase(), cache: this.client.cache });
     }
-    protected async getOtherHCBOrganization(organization: string): Promise<Organization> {
+    // FIXME: Add a public utility class instead of having this in the Module class
+    public async getOtherHCBOrganization(organization: string): Promise<Organization> {
         return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: organization.toLowerCase(), cache: this.client.cache });
     }
-    protected async getOtherHCBOrganizationTransactions(organization: string): Promise<Transaction[]> {
+    public async getOtherHCBOrganizationTransactions(organization: string): Promise<Transaction[]> {
         return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: organization.toLowerCase(), cache: this.client.cache });
     }
-    protected async getHCBTransaction(transactionId: string): Promise<Transaction> {
+    public async getHCBTransaction(transactionId: string): Promise<Transaction> {
         return await getTransaction({ baseUrl: config.HCB.API.BaseUrl, transactionId, cache: this.client.cache });
     }
-    protected async getHCBCard(cardId: string): Promise<Card> {
+    public async getHCBCard(cardId: string): Promise<Card> {
         return await getCard({ baseUrl: config.HCB.API.BaseUrl, cardId, cache: this.client.cache });
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
