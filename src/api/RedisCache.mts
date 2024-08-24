@@ -3,12 +3,13 @@ import { Cache, CacheExpiration, CacheName } from '../types/Cache.mts';
 import HCBFetcher from '../core/HCBFetcher.mts';
 
 export class RedisCache extends Cache {
-    client: RedisClientType = createClient({
-        url: `redis://localhost:6379`,
-    });
+    client: RedisClientType;
     
     constructor(hcbClient: HCBFetcher) {
         super(hcbClient);
+        this.client = createClient({
+            url: this.hcbClient.yamlConfig.Cache.Redis.URI,
+        });
         this.connect();
     }
     async connect(): Promise<void> {

@@ -11,8 +11,18 @@ export enum CacheName {
 }
 
 export enum CacheExpiration {
-    TEN_MINUTES = 10 * 60,
+    ONE_MINUTE = 1 * 60,
     FIVE_MINUTES = 5 * 60,
+    TEN_MINUTES = 10 * 60,
+    THIRTY_MINUTES = 30 * 60,
+    ONE_HOUR = 1 * 60 * 60,
+    SIX_HOURS = 6 * 60 * 60,
+    TWELVE_HOURS = 12 * 60 * 60,
+    ONE_DAY = 24 * 60 * 60,
+    // Anything above this is either going to be completely unused 
+    ONE_WEEK = 7 * 24 * 60 * 60,
+    ONE_MONTH = 30 * 24 * 60 * 60,
+    ONE_YEAR = 365 * 24 * 60 * 60,
     NEVER = -1,
 }
 

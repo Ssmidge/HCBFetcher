@@ -20,6 +20,14 @@ export type ConfigType = {
     },
     Logging: {
         Level: string;
+    },
+    Web: {
+        Port: number;
+    },
+    Cache: {
+        Redis: {
+            URI: string;
+        }
     }
 }
 
@@ -47,6 +55,16 @@ export class Config implements ConfigType {
 
     Logging = {
         Level: "INFO"
+    };
+
+    Web = {
+        Port: 3000,
+    };
+
+    Cache = {
+        Redis: {
+            URI: "",
+        }
     };
 
 }

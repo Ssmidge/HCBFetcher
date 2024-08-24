@@ -4,7 +4,6 @@ import { numberWithCommas } from "../utils/MoneyUtils.ts";
 import { LogLevel } from "../api/Logger.mts";
 import HCBFetcher from "../core/HCBFetcher.mts";
 
-
 export default class SlackBot extends Module {
     static multiHandler: boolean = true;
     logLevel: LogLevel = LogLevel.DEBUG;
@@ -140,6 +139,79 @@ export default class SlackBot extends Module {
                             fields.push(`*Issued At*: ${date.toDateString()} ${date.toTimeString()}`);
                         }
                         if (cardData.organization.balances) fields.push(`*Organization Balance*: ${numberWithCommas(cardData.organization.balances.balance_cents / 100)} USD`);
+
+                        await respond({
+                            replace_original: true,
+                            mrkdwn: true,
+                            parse: "none",
+                            text: fields.join("\n"),
+                        });
+                        break;
+                    }
+                    // arav asked for it :)
+                    case "org": {
+                        if (!command.text.split(" ")[1] || command.text.split(" ")[1]?.length < 1) {
+                            await respond({ replace_original: true, text: "Please provide a organization slug." });
+                            break;
+                        }
+
+                        const organizationSlug = command.text.split(" ")[1];
+                        const organizationData = await this.getOtherHCBOrganization(organizationSlug);
+
+                        if (organizationData.message)
+                            return await respond({
+                                replace_original: true,
+                                text: `${organizationData.message}`
+                            });
+
+                        const fields = [];
+
+                        if (organizationData.name) fields.push(`*Name*: ${organizationData.name}`);
+                        if (organizationData.slug) fields.push(`*Slug*: ${organizationData.slug}`);
+                        if (organizationData.category) fields.push(`*Category*: ${organizationData.category.substring(0, 1).toUpperCase() + organizationData.category.slice(1)}`);
+                        if (organizationData.balances) fields.push(`*Balance*: ${numberWithCommas(organizationData.balances.balance_cents / 100)} USD`);
+                        if (organizationData.donation_link) fields.push(`*Donation Link*: ${organizationData.donation_link}`);
+                        if (organizationData.website) fields.push(`*Website*: ${organizationData.website}`);
+                        if (organizationData.users) fields.push(`*Users*: ${organizationData.users.map((u) => u.full_name).join(", ")}`);
+                        
+                        await respond({
+                            replace_original: true,
+                            mrkdwn: true,
+                            parse: "none",
+                            text: fields.join("\n"),
+                        });
+                        break;
+                    }
+                    case "transactions": {
+                        if (!command.text.split(" ")[1] || command.text.split(" ")[1]?.length < 1) {
+                            await respond({ replace_original: true, text: "Please provide a organization slug." });
+                            break;
+                        }
+
+                        const organizationSlug = command.text.split(" ")[1];
+                        const organizationTransactions = await this.getOtherHCBOrganizationTransactions(organizationSlug);
+
+                        if (typeof organizationTransactions === 'object' && 'message' in organizationTransactions) {
+                            await respond({
+                                replace_original: true,
+                                text: `${(organizationTransactions as any).message}`
+                            });
+                            break;
+                        }
+
+                        const fields: string[] = [];
+
+                        organizationTransactions.forEach((transaction) => {
+                            if (transaction.id) fields.push(`*Transaction ID*: <https://hcb.hackclub.com/hcb/${transaction.id.split("txn_")[1]}|${transaction.id}>`);
+                            if (transaction.date) fields.push(`*Date*: ${transaction.date}`);
+                            if (transaction.memo) fields.push(`*Memo*: ${transaction.memo}`);
+                            if (transaction.amount_cents) fields.push(`*Balance Change*: ${transaction.amount_cents < 0 ? "-" : "+"}$${numberWithCommas(Math.abs(transaction.amount_cents / 100))}`);
+                            const user = transaction.card_charge?.user || transaction.ach_transfer?.user || transaction.check?.user || transaction.donation?.user || transaction.invoice?.user || transaction.transfer?.user;
+                            if (user) fields.push(`*User*: ${user.full_name}`);
+                            const status = transaction.ach_transfer?.status || transaction.check?.status || transaction.donation?.status || transaction.invoice?.status || transaction.transfer?.status || (transaction.pending ? "Pending" : null) || (transaction.card_charge ? transaction.pending ? "Pending" : "Completed" : null);
+                            if (status) fields.push(`*Status*: ${status.substring(0, 1).toUpperCase()}${status.substring(1)}`);
+                            fields.push("");
+                        });
 
                         await respond({
                             replace_original: true,

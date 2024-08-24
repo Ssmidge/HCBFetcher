@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Card, Organization, Transaction } from '../types/HCB.ts';
-import { Cache, CacheName } from '../types/Cache.mts';
+import { Cache, CacheExpiration, CacheName } from '../types/Cache.mts';
 
 
 // TODO: Remove in next release
@@ -38,14 +38,14 @@ export async function getAllOrganizationTransactions({ baseUrl, organization, ca
           "Content-Type": "application/json",
         },
       params: {
-        "expand": "user,ach_transfer,check,donation,invoice,transfer,card_charge",
+        "expand": "organization,user,ach_transfer,check,donation,invoice,transfer,card_charge",
         "per_page": "15"
       },
       url: `${baseUrl}/organizations/${organization}/transactions`,
       validateStatus: () => true,
     });
   
-    cache.set(CacheName.OrganizationTransactions, organization.toLowerCase(), JSON.stringify(response.data));
+    cache.set(CacheName.OrganizationTransactions, organization.toLowerCase(), JSON.stringify(response.data), CacheExpiration.ONE_MINUTE);
     // console.log(`Fetched ${response.data.length} transactions for organization ${organization} from API`);
   } else {
     // console.log(`Using ${(organizationTransactionCache.get(organization) as Transaction[]).length} cached transactions for organization ${organization}`);
@@ -102,4 +102,38 @@ export async function getTransaction({ baseUrl, transactionId, cache }: { baseUr
   }
 
   return JSON.parse(await cache.get(CacheName.Transaction, transactionId) || {}) as Transaction;
+}
+
+export async function getAllTransparentOrganizations({ baseUrl, cache }: { baseUrl: string; cache: Cache }) : Promise<Organization[]> {
+  // some meth to make it get every single page
+  let organizations: Organization[] = [];
+  let page = 1;
+
+  if (!await cache.has(CacheName.Organization, "all")) {
+    for (;;) {
+      const response = await axios({
+        method: "GET",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+          },
+        params: {
+          "expand": "balances",
+          "per_page": "15",
+          "page": page
+        },
+        url: `${baseUrl}/organizations`,
+        validateStatus: () => true,
+      });
+
+      
+      if (response.data.length === 0) break;
+      organizations = organizations.concat(response.data);
+      page++;
+    }
+
+    cache.set(CacheName.Organization, "all", JSON.stringify(organizations));
+  }
+
+  return JSON.parse(await cache.get(CacheName.Organization, "all")) as Organization[];;
 }

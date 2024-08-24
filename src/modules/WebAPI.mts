@@ -27,7 +27,7 @@ export default class WebAPI extends Module {
         });
 
         try {
-            this.router.listen({ port: 3000 });
+            this.router.listen({ port: this.client.yamlConfig.Web.Port });
           } catch (err) {
             this.router.log.error(err);
             process.exit(1);

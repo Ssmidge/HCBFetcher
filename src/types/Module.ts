@@ -1,4 +1,4 @@
-import { getAllOrganizationTransactions, getCard, getOrganization, getTransaction } from "../api/HCB.mts";
+import { getAllOrganizationTransactions, getAllTransparentOrganizations, getCard, getOrganization, getTransaction } from "../api/HCB.mts";
 import { getConfiguration } from "../api/ConfigurationLoader.mts";
 import { Card, Organization, Transaction } from "./HCB.ts";
 import { LogLevel } from "../api/Logger.mts";
@@ -38,6 +38,9 @@ export default class Module implements IModule {
     }
     public async getHCBCard(cardId: string): Promise<Card> {
         return await getCard({ baseUrl: config.HCB.API.BaseUrl, cardId, cache: this.client.cache });
+    }
+    public async getAllTransparentOrganizations(): Promise<Organization[]> {
+        return await getAllTransparentOrganizations({ baseUrl: config.HCB.API.BaseUrl, cache: this.client.cache });
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async sendOutput({ organizations }: { organizations?: string[] | undefined | null }): Promise<unknown> {

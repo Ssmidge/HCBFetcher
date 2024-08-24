@@ -2,11 +2,14 @@ HCB:
   API:
     BaseUrl: "https://hcb.hackclub.com/api/v3"
     UserAgent: "HCB Transaction Fetcher (https://github.com/Ssmidge/HCBFetcher; https://ssmidge.xyz (@Adrian T on Slack))"
-  MonitoredOrganizations: # These organizations will show the differences when the script is ran again
+  MonitoredOrganizations: # organizations to stalk i mean monitor
     - "Arcade"
     - "HQ"
     - "WeLikeToCodeStuff"
     - "Ragnohacks"
+    - "arav"
+    - "rpki"
+    - "leo-s-eu-mailing-fund"
 Slack:
   Tokens:
     Bot: ""
@@ -15,6 +18,11 @@ Slack:
     Signing: ""
   Channels:
     TransactionTracker: ""
+Web:
+  Port: 3000
+Cache:
+  Redis:
+    URI: redis://localhost:6379
 
 Logging:
   Level: "INFO"
