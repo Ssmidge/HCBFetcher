@@ -9,6 +9,11 @@ It can only monitor specific organizations for now, however more features are pl
 ## Configuration
 **The environment file is DEPRECATED. Use the YAML configuration instead!!**
 
+## Images
+![Demo](https://cloud-j954fvo8u-hack-club-bot.vercel.app/0slack_46pcptfgxd.gif)
+![Tracker](https://cloud-2jhuv5yvh-hack-club-bot.vercel.app/0image.png)
+![Command](https://cloud-2jhuv5yvh-hack-club-bot.vercel.app/1image.png)
+
 ## Planned features
 | Feature Name 	| Priority 	| Branch 	| Status 	| Extra Information                 	|
 |--------------	|----------	|--------	|--------	|-----------------------------------	|
