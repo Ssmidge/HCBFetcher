@@ -5,11 +5,12 @@ import { Cache } from "../types/Cache.mts";
 import { RedisCache } from "../api/RedisCache.mts";
 import { Config } from "../types/Configuration.ts";
 import { Logger, LogLevel } from "../api/Logger.mts";
+import Command from "../types/slackbot/SlackCommand.mts";
 
 export default class HCBFetcher {
     private eventEmitter;
     slackBot?: Bolt.App;
-    slackCommands: string[] = [];
+    slackCommands: Command[] = [];
     organizations: string[];
     modulesToRun: typeof Module[] = [];
     moduleList: Module[] = [];

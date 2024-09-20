@@ -3,9 +3,13 @@ import Bolt, { LogLevel as SlackLogLevel } from "@slack/bolt";
 import { numberWithCommas } from "../utils/MoneyUtils.ts";
 import { LogLevel } from "../api/Logger.mts";
 import HCBFetcher from "../core/HCBFetcher.mts";
+import Handler from "../types/slackbot/SlackHandler.mts";
+import { CommandHandler } from "./slack/handlers/CommandHandler.mts";
+import BalanceCommand from "./slack/commands/Balance.mts";
 
 export default class SlackBot extends Module {
     static multiHandler: boolean = true;
+    handlers: Handler[] = [];
     logLevel: LogLevel = LogLevel.DEBUG;
     constructor({ organization, client, isMultiHandler } : { organization: string, client: HCBFetcher, isMultiHandler?: boolean }) {
         super({ organization, client, isMultiHandler });
@@ -45,13 +49,16 @@ export default class SlackBot extends Module {
     
     async sendOutput() {
         (this.client.slackBot as unknown as Bolt.App).start();
+        this.client.slackCommands.push(new BalanceCommand(this.client.slackBot as Bolt.App, this.client));
+        this.handlers.push(new CommandHandler(this.client.slackBot as Bolt.App, this.client));
         this.log(LogLevel.INFO, `SlackBot for ${this.client.organizations.length} organizations initialized`);
-        this.setupSlack();
+        this.handlers.forEach((handler) => handler.handle());
+        // this.setupSlack();
     }
 
     async setupSlack() {
-        if (this.client.slackCommands.includes("/hcb")) return;
-        this.client.slackCommands.push("/hcb");
+        // if (this.client.slackCommands.find((c) => c.name.toLowerCase() === "hcb")) return;
+        // this.client.slackCommands.push("/hcb");
         this.client.slackBot?.command("/hcb", async ({ command, ack, respond }) => {
             await ack();
             await respond({ replace_original: true, text: "Processing your command..." });
