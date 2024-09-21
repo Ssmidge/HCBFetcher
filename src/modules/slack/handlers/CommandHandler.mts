@@ -16,7 +16,6 @@ export class CommandHandler extends Handler {
             
             const commandName = command.command.replace("/", "").toLowerCase();
             const commandArguments = command.text.split(" ");
-            console.log(commandName, commandArguments);
 
             // Help command isn't a real command, it's just a way to get the list of commands
             if (commandName.toLowerCase() === "hcb" && commandArguments[0].toLowerCase() === "help") {
@@ -52,7 +51,7 @@ export class CommandHandler extends Handler {
             });
             if (!commandToExecute) {
                 await respond({
-                    text: `I'm sorry, I don't know what command ${commandName} is.`,
+                    text: `I'm sorry, I don't know what command \`/${commandArguments.length > 1 ? `${commandName} ${commandArguments[0]}` : commandName}\` is.`,
                     thread_ts: body.ts,
                 });
                 return;
@@ -63,9 +62,8 @@ export class CommandHandler extends Handler {
                     context,
                     body,
                     command
-                }, commandArguments.map((argument) => {
-                    const toReturn = commandToExecute.commandArguments[commandArguments.indexOf(argument)];
-                    console.log(argument, commandArguments, toReturn);
+                }, commandArguments.splice(1).map((argument) => {
+                    const toReturn = commandToExecute.commandArguments[commandArguments.indexOf(argument) + 1];
                     toReturn.value = argument;
                     return toReturn;
                 }), respond);

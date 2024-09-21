@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { Card, Organization, Transaction } from '../types/HCB.ts';
 import { Cache, CacheExpiration, CacheName } from '../types/Cache.mts';
-
+import { validateJSON } from '../utils/JSONUtils.ts';
 
 // TODO: Remove in next release
 // const organizationCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
@@ -24,9 +24,7 @@ export async function getOrganization({ baseUrl, organization, cache }: { baseUr
     });
  
     // parse the response to see if it's json otherwise retry!!!
-    try {
-      JSON.parse(response.data);
-    } catch (ignored: unknown) { return await getOrganization({ baseUrl, organization, cache }); }
+    if (!validateJSON(response.data)) return await getOrganization({ baseUrl, organization, cache });
     cache.set(CacheName.Organization, organization.toLowerCase(), JSON.stringify(response.data));
   } else {
     // console.log(`Using cached organization ${organization}`);
@@ -50,9 +48,7 @@ export async function getAllOrganizationTransactions({ baseUrl, organization, ca
       validateStatus: () => true,
     });
   
-    try {
-      JSON.parse(response.data);
-    } catch (ignored: unknown) { return await getAllOrganizationTransactions({ baseUrl, organization, cache }); }
+    if (!validateJSON(response.data)) return await getAllOrganizationTransactions({ baseUrl, organization, cache });
     cache.set(CacheName.OrganizationTransactions, organization.toLowerCase(), JSON.stringify(response.data), CacheExpiration.ONE_MINUTE);
     // console.log(`Fetched ${response.data.length} transactions for organization ${organization} from API`);
   } else {
@@ -78,9 +74,7 @@ export async function getCard({ baseUrl, cardId, cache }: { baseUrl: string, car
       validateStatus: () => true,
     });
   
-    try {
-      JSON.parse(response.data);
-    } catch (ignored: unknown) { return await getCard({ baseUrl, cardId, cache }); }
+    if (!validateJSON(response.data)) return await getCard({ baseUrl, cardId, cache });
     cache.set(CacheName.Card, cardId, JSON.stringify(response.data));
     // console.log(`Fetched data about card ${cardId} from API`);
   } else {
@@ -106,9 +100,7 @@ export async function getTransaction({ baseUrl, transactionId, cache }: { baseUr
       validateStatus: () => true,
     });
   
-    try {
-      JSON.parse(response.data);
-    } catch (ignored: unknown) { return await getTransaction({ baseUrl, transactionId, cache }); }
+    if (!validateJSON(response.data)) return await getTransaction({ baseUrl, transactionId, cache });
     cache.set(CacheName.Transaction, transactionId, JSON.stringify(response.data));
     // console.log(`Fetched data about transaction ${transactionId} from API`);
   } else {
@@ -146,9 +138,7 @@ export async function getAllTransparentOrganizations({ baseUrl, cache }: { baseU
       page++;
     }
 
-    try {
-      JSON.parse(JSON.stringify(organizations));
-    } catch (ignored: unknown) { return await getAllTransparentOrganizations({ baseUrl, cache }); }
+    if (!validateJSON(organizations)) return await getAllTransparentOrganizations({ baseUrl, cache });
     cache.set(CacheName.Organization, "all", JSON.stringify(organizations));
   }
 

@@ -3,12 +3,12 @@ import Command, { Argument } from "../../../types/slackbot/SlackCommand.mts";
 import { App as BoltApp, RespondFn, SlashCommand } from "@slack/bolt";
 import { numberWithCommas } from "../../../utils/MoneyUtils.ts";
 
-export default class BalanceCommand extends Command {
+export default class OrganizationCommand extends Command {
 
     constructor(client: BoltApp, hcbClient: HCBFetcher) {
         super({
-            subCommand: "hcb.balance",
-            description: "Checks the balance of a specific HCB organization.",
+            subCommand: "hcb.org",
+            description: "Returns general information about a specific organization.",
             commandArguments: [
                 {
                     name: "organization",
@@ -18,7 +18,7 @@ export default class BalanceCommand extends Command {
                     example: "weliketocodestuff"
                 }
             ],
-            usage: "/hcb balance <organization>",
+            usage: "/hcb org <organization>",
             client,
             hcbClient
         });
@@ -40,17 +40,28 @@ export default class BalanceCommand extends Command {
 
         const organizationData = await this.getOtherHCBOrganization(organization);
 
-        if (organizationData.message) {
-            await respond({
+        if (organizationData.message)
+            return await respond({
                 replace_original: true,
                 text: `${organizationData.message}`
             });
-        } else if (organizationData.balances) {
-            await respond({
-                replace_original: true,
-                text: `${organizationData.name} has a balance of ${numberWithCommas(organizationData.balances.balance_cents / 100)} USD`
-            });
-        }
+
+        const fields = [];
+
+        if (organizationData.name) fields.push(`*Name*: ${organizationData.name}`);
+        if (organizationData.slug) fields.push(`*Slug*: ${organizationData.slug}`);
+        if (organizationData.category) fields.push(`*Category*: ${organizationData.category.substring(0, 1).toUpperCase() + organizationData.category.slice(1)}`);
+        if (organizationData.balances) fields.push(`*Balance*: ${numberWithCommas(organizationData.balances.balance_cents / 100)} USD`);
+        if (organizationData.donation_link) fields.push(`*Donation Link*: ${organizationData.donation_link}`);
+        if (organizationData.website) fields.push(`*Website*: ${organizationData.website}`);
+        if (organizationData.users) fields.push(`*Users*: ${organizationData.users.map((u) => u.full_name).join(", ")}`);
+        
+        await respond({
+            replace_original: true,
+            mrkdwn: true,
+            parse: "none",
+            text: fields.join("\n"),
+        });
     }
 
 }
