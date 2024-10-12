@@ -11,7 +11,8 @@ import { validateJSON } from '../utils/JSONUtils.ts';
 // const cardCache = new nodeCache({ stdTTL: 600, checkperiod: 120, useClones: false });
 
 export async function getOrganization({ baseUrl, organization, cache }: { baseUrl: string, organization: string, cache: Cache }) : Promise<Organization> {
-  if (!await cache.has(CacheName.Organization, organization.toLowerCase())) {
+  const formattedOrganization = organization.startsWith("org_") ? organization : organization.toLowerCase();
+  if (!await cache.has(CacheName.Organization, formattedOrganization)) {
     // console.log(`Fetching organization ${organization} from API`);
     const response = await axios({
       method: "GET",
@@ -19,21 +20,22 @@ export async function getOrganization({ baseUrl, organization, cache }: { baseUr
           "Accept": "application/json",
           "Content-Type": "application/json",
       },
-      url: `${baseUrl}/organizations/${organization}`,
+      url: `${baseUrl}/organizations/${formattedOrganization}`,
       validateStatus: () => true,
     });
- 
+
     // parse the response to see if it's json otherwise retry!!!
-    if (!validateJSON(response.data)) return await getOrganization({ baseUrl, organization, cache });
-    cache.set(CacheName.Organization, organization.toLowerCase(), JSON.stringify(response.data));
+    if (!validateJSON(response.data)) return await getOrganization({ baseUrl, organization: formattedOrganization, cache });
+    cache.set(CacheName.Organization, formattedOrganization, JSON.stringify(response.data));
   } else {
     // console.log(`Using cached organization ${organization}`);
   }
-  return JSON.parse(await cache.get(CacheName.Organization, organization.toLowerCase())) as Organization;
+  return JSON.parse(await cache.get(CacheName.Organization, formattedOrganization)) as Organization;
 }
 
 export async function getAllOrganizationTransactions({ baseUrl, organization, cache }: { baseUrl: string, organization: string, cache: Cache }) : Promise<Transaction[]> {
-  if (!await cache.has(CacheName.OrganizationTransactions, organization.toLowerCase())) {
+  const formattedOrganization = organization.startsWith("org_") ? organization : organization.toLowerCase();
+  if (!await cache.has(CacheName.OrganizationTransactions, formattedOrganization)) {
     const response = await axios({
       method: "GET",
       headers: {
@@ -44,18 +46,18 @@ export async function getAllOrganizationTransactions({ baseUrl, organization, ca
         "expand": "organization,user,ach_transfer,check,donation,invoice,transfer,card_charge",
         "per_page": "15"
       },
-      url: `${baseUrl}/organizations/${organization}/transactions`,
+      url: `${baseUrl}/organizations/${formattedOrganization}/transactions`,
       validateStatus: () => true,
     });
-  
-    if (!validateJSON(response.data)) return await getAllOrganizationTransactions({ baseUrl, organization, cache });
-    cache.set(CacheName.OrganizationTransactions, organization.toLowerCase(), JSON.stringify(response.data), CacheExpiration.ONE_MINUTE);
+
+    if (!validateJSON(response.data)) return await getAllOrganizationTransactions({ baseUrl, organization: formattedOrganization, cache });
+    cache.set(CacheName.OrganizationTransactions, formattedOrganization, JSON.stringify(response.data), CacheExpiration.ONE_MINUTE);
     // console.log(`Fetched ${response.data.length} transactions for organization ${organization} from API`);
   } else {
     // console.log(`Using ${(organizationTransactionCache.get(organization) as Transaction[]).length} cached transactions for organization ${organization}`);
   }
 
-  return JSON.parse(await cache.get(CacheName.OrganizationTransactions, organization.toLowerCase())) as Transaction[];
+  return JSON.parse(await cache.get(CacheName.OrganizationTransactions, formattedOrganization)) as Transaction[];
 }
 
 export async function getCard({ baseUrl, cardId, cache }: { baseUrl: string, cardId: string, cache: Cache }) : Promise<Card> {

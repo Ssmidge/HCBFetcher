@@ -19,19 +19,19 @@ export default class Module implements IModule {
     protected async getHCBOrganization(): Promise<Organization> {
         if (this.multiHandler) throw new Error("This module is not designed to be used with multiple handlers");
         else
-            return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization.toLowerCase(), cache: this.client.cache });
+            return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization, cache: this.client.cache });
     }
     protected async getHCBOrganizationTransactions(): Promise<Transaction[]> {
         if (this.multiHandler) throw new Error("This module is not designed to be used with multiple handlers");
         else
-            return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization.toLowerCase(), cache: this.client.cache });
+            return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: this.organization, cache: this.client.cache });
     }
     // FIXME: Add a public utility class instead of having this in the Module class
     public async getOtherHCBOrganization(organization: string): Promise<Organization> {
-        return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: organization.toLowerCase(), cache: this.client.cache });
+        return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: organization, cache: this.client.cache });
     }
     public async getOtherHCBOrganizationTransactions(organization: string): Promise<Transaction[]> {
-        return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: organization.toLowerCase(), cache: this.client.cache });
+        return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: organization, cache: this.client.cache });
     }
     public async getHCBTransaction(transactionId: string): Promise<Transaction> {
         return await getTransaction({ baseUrl: config.HCB.API.BaseUrl, transactionId, cache: this.client.cache });

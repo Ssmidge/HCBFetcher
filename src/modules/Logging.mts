@@ -13,6 +13,7 @@ export default class Logging extends Module {
     async sendOutput() {
         const organizationData = await this.getHCBOrganization();
         let lastTransactions = await this.getHCBOrganizationTransactions();
+        if (!lastTransactions || lastTransactions.length === 0) return;
         let lastTransaction = lastTransactions[0];
         if (!lastTransaction) return;
 

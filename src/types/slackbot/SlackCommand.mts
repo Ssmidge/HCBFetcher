@@ -42,10 +42,10 @@ export default abstract class Command {
     abstract execute({ context, body, command }: { context: Context; body: SlashCommand; command: SlashCommand; }, args: Argument[], respond: RespondFn): Promise<void>;
 
     protected async getOtherHCBOrganization(organization: string): Promise<Organization> {
-        return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: organization.toLowerCase(), cache: this.hcbClient.cache });
+        return await getOrganization({ baseUrl: config.HCB.API.BaseUrl, organization: organization, cache: this.hcbClient.cache });
     }
     protected async getOtherHCBOrganizationTransactions(organization: string): Promise<Transaction[]> {
-        return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: organization.toLowerCase(), cache: this.hcbClient.cache });
+        return await getAllOrganizationTransactions({ baseUrl: config.HCB.API.BaseUrl, organization: organization, cache: this.hcbClient.cache });
     }
     protected async getHCBTransaction(transactionId: string): Promise<Transaction> {
         return await getTransaction({ baseUrl: config.HCB.API.BaseUrl, transactionId, cache: this.hcbClient.cache });
