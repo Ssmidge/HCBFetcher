@@ -3,15 +3,16 @@ HCB:
     BaseUrl: "https://hcb.hackclub.com/api/v3"
     UserAgent: "HCB Transaction Fetcher (https://github.com/Ssmidge/HCBFetcher; https://ssmidge.xyz (@Adrian T on Slack))"
   MonitoredOrganizations: # organizations to stalk i mean monitor
-    - "Arcade"
-    - "HQ"
-    - "WeLikeToCodeStuff"
+    - "org_a29uVj" # HQ
+    - "org_8VujyG" # WeLikeToCodeStuff - https://wltcs.us
+    - "org_9rupz3" # RPKI.WIN - My free hosted RPKI service
+    - "org_5Gu7vq" # Dillan's community newsletter
+    - "org_7XuN55" # International Mailing Fund
+    - "org_XDuWl0" # Revolution
+    - "Arcade" # Arcade
     - "Ragnohacks"
-    - "arav"
-    - "rpki"
-    - "leo-s-eu-mailing-fund"
-    - "dillon-s-community-newsletter"
-    - "revolution"
+    # Removed Aarya due to too many people asking for "personal" acounts :sob:
+    #- "arav"
 Slack:
   Tokens:
     Bot: ""
