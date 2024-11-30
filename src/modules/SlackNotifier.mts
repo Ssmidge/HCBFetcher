@@ -42,12 +42,23 @@ export default class SlackNotifier extends Module {
             }
 
             if (messageQueue.length >= 1) {
-                await this.client.slackBot?.client.chat.postMessage({
-                    channel: this.client.yamlConfig.Slack.Channels.TransactionTracker as string,
-                    mrkdwn: true,
-                    parse: "none",
-                    text: messageQueue.map((m) => m.join("\n")).join("\n\n"),
-                });
+                const splitArrays = messageQueue.reduce((resultArray: string[][][], item, index) => { 
+                    const chunkIndex = Math.floor(index / 10);
+                    if (!resultArray[chunkIndex]) {
+                        resultArray[chunkIndex] = [];
+                    }
+                    resultArray[chunkIndex].push(item);
+                    return resultArray;
+                }, []);
+            
+                for (const messages of splitArrays) {
+                    await this.client.slackBot?.client.chat.postMessage({
+                        channel: this.client.yamlConfig.Slack.Channels.TransactionTracker as string,
+                        mrkdwn: true,
+                        parse: "none",
+                        text: messages.map((m) => m.join("\n")).join("\n\n"),
+                    });
+                }
                 
                 this.client.emit("slackNotifierExecuted", this, messageQueue);
                 // Reset the message queue
