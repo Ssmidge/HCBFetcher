@@ -22,9 +22,10 @@ export default class SlackNotifier extends Module {
         const execute = async () => {
             const messageQueue: string[][] = [];
             for (const org of orgNames) {
-                (await this.getOtherHCBOrganizationTransactions(org)).filter((t: Transaction) => (!t.memo.toLowerCase().includes("fiscal sponsorship for") || !t.memo) && t.amount_cents != 0.00).forEach(async (lastTransaction: Transaction) => {
-                    if (!lastTransaction?.id) return;
-                    if ((await this.client.cache.get(CacheName.LastTransactions, lastTransaction.id)) === "true") return;
+                for (const lastTransaction of (await this.getOtherHCBOrganizationTransactions(org)).filter((t: Transaction) => (!t.memo.toLowerCase().includes("fiscal sponsorship for") || !t.memo) && t.amount_cents != 0.00)) {
+                    if (!lastTransaction?.id) continue;
+                    if ((await this.client.cache.get(CacheName.LastTransactions, lastTransaction.id)) === "true") continue;
+                
                     const text = [];
                     if (lastTransaction.id) text.push(`<https://hcb.hackclub.com/hcb/${lastTransaction.id.split("txn_")[1]}|*NEW TRANSACTION*>`);
                     if (lastTransaction.organization?.name) text.push(`*Organization*: ${lastTransaction.organization.name}`);
@@ -32,13 +33,13 @@ export default class SlackNotifier extends Module {
                     if (lastTransaction.memo) text.push(`*Memo*: ${lastTransaction.memo}`);
                     if (lastTransaction.amount_cents) text.push(`*Balance Change*: ${lastTransaction.amount_cents < 0 ? "-" : "+"}$${numberWithCommas(Math.abs(lastTransaction.amount_cents / 100))}`);
                     if (lastTransaction.card_charge?.user.full_name) text.push(`*User*: ${lastTransaction.card_charge?.user.full_name}`);
-                    if (lastTransaction.ach_transfer?.status || lastTransaction.check?.status || lastTransaction.donation?.status || lastTransaction.invoice?.status || lastTransaction.transfer?.status || lastTransaction.pending) {
-                        const statusText : string = lastTransaction.ach_transfer?.status || lastTransaction.check?.status || lastTransaction.donation?.status || lastTransaction.invoice?.status || lastTransaction.transfer?.status || (lastTransaction.pending ? "pending" : null) || "";
+                    if (lastTransaction.ach_transfer?.status || lastTransaction.check?.status || lastTransaction.donation?.status || lastTransaction.invoice?.status || lastTransaction.transfer?.status) {
+                        const statusText: string | undefined = lastTransaction.ach_transfer?.status || lastTransaction.check?.status || lastTransaction.donation?.status || lastTransaction.invoice?.status || lastTransaction.transfer?.status;
                         if (statusText) text.push(`*Status*: ${statusText.substring(0, 1).toUpperCase()}${statusText.substring(1)}`);
                     }
                     messageQueue.push(text);
                     await this.client.cache.set(CacheName.LastTransactions, lastTransaction.id, "true", CacheExpiration.NEVER);
-                });
+                }                
             }
 
             if (messageQueue.length >= 1) {

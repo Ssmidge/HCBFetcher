@@ -32,14 +32,12 @@
     "@cloudflare/workers-types": "^4.20240806.0",
     "@slack/bolt": "^3.19.0",
     "@slack/socket-mode": "^2.0.0",
-    "@types/nodegit": "^0.28.7",
     "axios": "^1.7.3",
     "chalk": "^5.3.0",
     "dotenv": "^16.4.5",
     "fastify": "^4.28.1",
     "itty-router": "^5.0.17",
     "node-cache": "^5.1.2",
-    "nodegit": "0.28.0-alpha.28",
     "redis": "^4.7.0",
     "yaml": "^2.5.0"
   }
